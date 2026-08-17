@@ -363,6 +363,8 @@ internal sealed partial class EditorWindow : Window
 
     private void BeginInlineTextEdit(EditorTextElement? element, SKRect placement)
     {
+        SetTool(EditorInteractionTool.Text, Localizer.Get("EditorTextPlacementHint"));
+        SetDocumentAcceleratorsEnabled(false);
         _ignoreInlineLostFocus = true;
         InlineTextEditor.Visibility = Visibility.Collapsed;
 
@@ -419,6 +421,7 @@ internal sealed partial class EditorWindow : Window
         _ignoreInlineLostFocus = true;
         InlineTextEditor.Visibility = Visibility.Collapsed;
         _editingTextId = null;
+        SetDocumentAcceleratorsEnabled(true);
 
         if (id is not null)
         {
@@ -453,6 +456,7 @@ internal sealed partial class EditorWindow : Window
         InlineTextEditor.Visibility = Visibility.Collapsed;
         InlineTextEditor.Text = string.Empty;
         _editingTextId = null;
+        SetDocumentAcceleratorsEnabled(true);
         _ignoreInlineLostFocus = false;
         SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
     }
@@ -600,7 +604,26 @@ internal sealed partial class EditorWindow : Window
         RectangleButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Rectangle;
         EllipseButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Ellipse;
         TriangleButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Triangle;
+        ColorPropertyGroup.Visibility = tool is EditorInteractionTool.Shape or EditorInteractionTool.Text
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        TextPropertyGroup.Visibility = tool == EditorInteractionTool.Text
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        NoPropertiesText.Visibility = tool is EditorInteractionTool.Shape or EditorInteractionTool.Text
+            ? Visibility.Collapsed
+            : Visibility.Visible;
         EditorStatusText.Text = status;
+    }
+
+    private void SetDocumentAcceleratorsEnabled(bool isEnabled)
+    {
+        DocumentUndoAccelerator.IsEnabled = isEnabled;
+        DocumentRedoAccelerator.IsEnabled = isEnabled;
+        DocumentCutAccelerator.IsEnabled = isEnabled;
+        DocumentCopyAccelerator.IsEnabled = isEnabled;
+        DocumentPasteAccelerator.IsEnabled = isEnabled;
+        DocumentSelectAllAccelerator.IsEnabled = isEnabled;
     }
 
     private void OnDocumentChanged(object? sender, EventArgs e)
