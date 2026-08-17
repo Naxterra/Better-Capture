@@ -1,0 +1,27 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Authors>Naxterra</Authors>
+    <Company>Naxterra</Company>
+    <Copyright>Copyright © 2026 Naxterra. Contact: github@shades.dev</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Creator</_Parameter1>
+      <_Parameter2>Naxterra</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Owner</_Parameter1>
+      <_Parameter2>Naxterra</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ContactEmail</_Parameter1>
+      <_Parameter2>github@shades.dev</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>
