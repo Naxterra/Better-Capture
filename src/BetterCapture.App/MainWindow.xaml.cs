@@ -29,6 +29,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        WindowAppearanceService.ApplyDarkTitleBar(this);
         _workflow = new CaptureWorkflow(_captureService, _settingsService);
 
         ExtendsContentIntoTitleBar = true;

@@ -23,6 +23,7 @@ internal sealed partial class LibraryWindow : Window
         _root = root;
         _openEditor = openEditor;
         InitializeComponent();
+        WindowAppearanceService.ApplyDarkTitleBar(this);
         Title = Localizer.Get("LibraryWindowTitle");
         AppWindow.SetIcon("Assets/AppIcon.ico");
         AppWindow.Resize(new SizeInt32(1120, 760));
@@ -116,7 +117,7 @@ internal sealed partial class LibraryWindow : Window
     private void LibraryGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var item = LibraryGrid.SelectedItem as LibraryItemViewModel;
-        EditSelectedButton.IsEnabled = item?.Kind == LibraryMediaKind.Image;
+        EditSelectedButton.IsEnabled = item?.CanEdit == true;
         OpenSelectedButton.IsEnabled = item is not null;
     }
 
@@ -130,7 +131,7 @@ internal sealed partial class LibraryWindow : Window
 
     private void EditSelectedButton_Click(object sender, RoutedEventArgs e)
     {
-        if (LibraryGrid.SelectedItem is LibraryItemViewModel { Kind: LibraryMediaKind.Image } item)
+        if (LibraryGrid.SelectedItem is LibraryItemViewModel { CanEdit: true } item)
         {
             _openEditor(item.Path);
         }
@@ -146,7 +147,7 @@ internal sealed partial class LibraryWindow : Window
 
     private async Task OpenItemAsync(LibraryItemViewModel item)
     {
-        if (item.Kind == LibraryMediaKind.Image)
+        if (item.CanEdit)
         {
             _openEditor(item.Path);
             return;
