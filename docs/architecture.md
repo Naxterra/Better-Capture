@@ -31,13 +31,13 @@ the DWM values makes midtones pale and is intentionally prohibited by tests.
 
 ## Projects
 
-- `NaxCapture.App`: WinUI 3 shell, selection overlay, hotkeys, clipboard.
-- `NaxCapture.Capture`: Windows Graphics Capture and D3D11 interop.
-- `NaxCapture.Graphics`: color conversion, tone mapping, PNG and EXR encoding.
-- `NaxCapture.Video`: fixed-rate H.264/MP4 recording through Media Foundation.
-- `NaxCapture.Editor`: Skia-based raster operations and annotation model.
-- `NaxCapture.Core`: capture contracts and platform-neutral frame geometry.
-- `NaxCapture.Core.Tests`: deterministic geometry, color, and encoder tests.
+- `BetterCapture.App`: WinUI 3 shell, selection overlay, hotkeys, clipboard.
+- `BetterCapture.Capture`: Windows Graphics Capture and D3D11 interop.
+- `BetterCapture.Graphics`: color conversion, tone mapping, PNG and EXR encoding.
+- `BetterCapture.Video`: fixed-rate H.264/MP4 recording through Media Foundation.
+- `BetterCapture.Editor`: Skia-based raster operations and annotation model.
+- `BetterCapture.Core`: capture contracts and platform-neutral frame geometry.
+- `BetterCapture.Core.Tests`: deterministic geometry, color, and encoder tests.
 
 Future `Scrolling`, indexed `Library`, and audio modules will depend on Core
 contracts instead of reaching into the capture engine.

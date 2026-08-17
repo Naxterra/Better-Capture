@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BetterCapture.App/BetterCapture.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/BetterCapture.Capture/BetterCapture.Capture.csproj" />
+    <Project Path="src/BetterCapture.Core/BetterCapture.Core.csproj" />
+    <Project Path="src/BetterCapture.Editor/BetterCapture.Editor.csproj" />
+    <Project Path="src/BetterCapture.Graphics/BetterCapture.Graphics.csproj" />
+    <Project Path="src/BetterCapture.Video/BetterCapture.Video.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BetterCapture.Core.Tests/BetterCapture.Core.Tests.csproj" />
+  </Folder>
+</Solution>
