@@ -1,5 +1,5 @@
 #define MyAppName "BetterCapture"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Naxterra"
 #define MyAppURL "https://github.com/Naxterra/Better-Capture"
 #define MyAppExeName "BetterCapture.exe"
@@ -31,7 +31,7 @@ MinVersion=10.0.26100
 PrivilegesRequired=admin
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=1.0.0.0
+VersionInfoVersion=1.0.1.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=BetterCapture x64 installer
 VersionInfoProductName={#MyAppName}
@@ -44,6 +44,7 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 [Tasks]
 Name: "startmenuicon"; Description: "{cm:CreateStartMenuShortcut}"; GroupDescription: "{cm:ShortcutOptions}"; Flags: checkedonce
 Name: "desktopicon"; Description: "{cm:CreateDesktopShortcut}"; GroupDescription: "{cm:ShortcutOptions}"; Flags: unchecked
+Name: "startup"; Description: "{cm:StartWithWindows}"; GroupDescription: "{cm:StartupOptions}"; Flags: unchecked
 
 [Files]
 Source: "{#BuildOutput}\*"; DestDir: "{app}"; Excludes: "*.pdb,*.appxrecipe,NaxCapture*,*\NaxCapture*"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -52,6 +53,9 @@ Source: "{#BuildOutput}\*"; DestDir: "{app}"; Excludes: "*.pdb,*.appxrecipe,NaxC
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: startmenuicon
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
+[Registry]
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "BetterCapture"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startup
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
@@ -59,6 +63,17 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 english.ShortcutOptions=Shortcut options:
 english.CreateStartMenuShortcut=Create a Start menu shortcut
 english.CreateDesktopShortcut=Create a desktop shortcut
+english.StartupOptions=Windows startup:
+english.StartWithWindows=Start BetterCapture with Windows
 german.ShortcutOptions=Verknüpfungen:
 german.CreateStartMenuShortcut=Verknüpfung im Startmenü erstellen
 german.CreateDesktopShortcut=Desktopverknüpfung erstellen
+german.StartupOptions=Windows-Autostart:
+german.StartWithWindows=BetterCapture mit Windows starten
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssPostInstall) and (not WizardIsTaskSelected('startup')) then
+    RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'BetterCapture');
+end;

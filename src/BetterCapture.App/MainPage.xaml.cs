@@ -6,6 +6,8 @@ namespace BetterCapture.App;
 
 public sealed partial class MainPage : Page
 {
+    private bool _settingStartupToggle;
+
     public MainPage()
     {
         InitializeComponent();
@@ -24,9 +26,18 @@ public sealed partial class MainPage : Page
 
     internal Func<Task>? OpenLibraryRequested { get; set; }
 
+    internal Func<bool, Task<bool>>? StartupSettingChanged { get; set; }
+
     internal bool IncludeCursor => CursorToggle.IsOn;
 
     internal void SetOutputFolder(string path) => OutputFolderText.Text = path;
+
+    internal void SetStartupEnabled(bool enabled)
+    {
+        _settingStartupToggle = true;
+        StartupToggle.IsOn = enabled;
+        _settingStartupToggle = false;
+    }
 
     internal void SetBusy(string message)
     {
@@ -132,6 +143,24 @@ public sealed partial class MainPage : Page
         if (OpenLibraryRequested is not null)
         {
             await OpenLibraryRequested();
+        }
+    }
+
+    private async void StartupToggle_Toggled(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        if (_settingStartupToggle || StartupSettingChanged is null)
+        {
+            return;
+        }
+
+        StartupToggle.IsEnabled = false;
+        try
+        {
+            SetStartupEnabled(await StartupSettingChanged(StartupToggle.IsOn));
+        }
+        finally
+        {
+            StartupToggle.IsEnabled = true;
         }
     }
 }

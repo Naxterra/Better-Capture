@@ -19,6 +19,8 @@
   <data name="CompatibilityLabel.Text" xml:space="preserve"><value>Compatibility</value></data>
   <data name="CompatibilityValue.Text" xml:space="preserve"><value>Tone-mapped sRGB PNG + clipboard</value></data>
   <data name="CursorToggle.Header" xml:space="preserve"><value>Include mouse pointer</value></data>
+  <data name="StartupToggle.Header" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="StartupSettingFailedTitle" xml:space="preserve"><value>Startup setting could not be changed</value></data>
   <data name="LocalOutputTitle.Text" xml:space="preserve"><value>Local library</value></data>
   <data name="OpenFolderText.Text" xml:space="preserve"><value>Open folder</value></data>
   <data name="ChangeFolderText.Text" xml:space="preserve"><value>Change location</value></data>
