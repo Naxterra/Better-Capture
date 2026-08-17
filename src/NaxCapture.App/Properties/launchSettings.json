@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BetterCapture (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "BetterCapture (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
