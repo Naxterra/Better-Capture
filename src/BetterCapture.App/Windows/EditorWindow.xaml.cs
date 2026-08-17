@@ -36,6 +36,7 @@ internal sealed partial class EditorWindow : Window
         _openLibrary = openLibrary;
         _document = EditorDocument.Load(imagePath);
         InitializeComponent();
+        WindowAppearanceService.ApplyDarkTitleBar(this);
         Title = $"{Localizer.Get("EditorWindowTitle")} — {Path.GetFileName(imagePath)}";
         AppWindow.SetIcon("Assets/AppIcon.ico");
         AppWindow.Resize(new SizeInt32(1280, 820));

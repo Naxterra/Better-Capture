@@ -21,7 +21,8 @@ public sealed class LibraryItemViewModel : INotifyPropertyChanged
         int width,
         int height,
         TimeSpan? duration,
-        long fileSize)
+        long fileSize,
+        bool canEdit)
     {
         Path = path;
         Kind = kind;
@@ -32,6 +33,7 @@ public sealed class LibraryItemViewModel : INotifyPropertyChanged
         Height = height;
         Duration = duration;
         FileSize = fileSize;
+        CanEdit = canEdit;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -54,13 +56,22 @@ public sealed class LibraryItemViewModel : INotifyPropertyChanged
 
     public long FileSize { get; }
 
+    public bool CanEdit { get; }
+
     public string CapturedAtDisplay => CapturedAt.ToLocalTime().ToString("g");
 
-    public string Details => Kind == LibraryMediaKind.Video
-        ? $"{Width} × {Height}  ·  {Duration?.ToString(@"mm\:ss")}"
-        : $"{Width} × {Height}";
+    public string Details
+    {
+        get
+        {
+            var dimensions = Width > 0 && Height > 0 ? $"{Width} × {Height}" : FormatFileSize(FileSize);
+            return Kind == LibraryMediaKind.Video && Duration is not null
+                ? $"{dimensions}  ·  {Duration.Value.ToString(@"mm\:ss")}"
+                : dimensions;
+        }
+    }
 
-    public string KindLabel => Kind == LibraryMediaKind.Video ? "VIDEO" : "PNG";
+    public string KindLabel => System.IO.Path.GetExtension(Path).TrimStart('.').ToUpperInvariant();
 
     public ImageSource? Thumbnail
     {
@@ -109,4 +120,8 @@ public sealed class LibraryItemViewModel : INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private static string FormatFileSize(long bytes) => bytes >= 1024 * 1024
+        ? $"{bytes / (1024d * 1024d):0.##} MB"
+        : $"{Math.Max(1, bytes / 1024d):0.#} KB";
 }
