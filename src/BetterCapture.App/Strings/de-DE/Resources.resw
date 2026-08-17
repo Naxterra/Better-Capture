@@ -108,6 +108,7 @@
   <data name="LibraryEmptyHint.Text" xml:space="preserve"><value>Neue Screenshots und Videos erscheinen hier automatisch.</value></data>
   <data name="LibraryItemCount" xml:space="preserve"><value>{0} Elemente</value></data>
   <data name="EditorMenuFile.Title" xml:space="preserve"><value>Datei</value></data>
+  <data name="EditorMenuOpen.Text" xml:space="preserve"><value>Öffnen…</value></data>
   <data name="EditorMenuEdit.Title" xml:space="preserve"><value>Bearbeiten</value></data>
   <data name="EditorMenuImage.Title" xml:space="preserve"><value>Bild</value></data>
   <data name="EditorMenuTools.Title" xml:space="preserve"><value>Werkzeuge</value></data>
@@ -134,10 +135,12 @@
   <data name="EditorMenuRectangle.Text" xml:space="preserve"><value>Rechteck</value></data>
   <data name="EditorMenuEllipse.Text" xml:space="preserve"><value>Ellipse</value></data>
   <data name="EditorMenuTriangle.Text" xml:space="preserve"><value>Dreieck</value></data>
+  <data name="EditorMenuShapes.Text" xml:space="preserve"><value>Formen</value></data>
   <data name="EditorMenuZoomIn.Text" xml:space="preserve"><value>Vergrößern</value></data>
   <data name="EditorMenuZoomOut.Text" xml:space="preserve"><value>Verkleinern</value></data>
   <data name="EditorMenuActualSize.Text" xml:space="preserve"><value>Originalgröße</value></data>
   <data name="EditorMenuFit.Text" xml:space="preserve"><value>An Fenster anpassen</value></data>
+  <data name="EditorMenuProperties.Text" xml:space="preserve"><value>Eigenschaften</value></data>
   <data name="EditorMenuShortcuts.Text" xml:space="preserve"><value>Tastenkombinationen</value></data>
   <data name="EditorMenuAbout.Text" xml:space="preserve"><value>Info zu BetterCapture-Editor</value></data>
   <data name="EditorPropertiesLabel.Text" xml:space="preserve"><value>Eigenschaften</value></data>

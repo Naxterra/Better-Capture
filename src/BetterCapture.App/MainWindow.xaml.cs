@@ -12,6 +12,10 @@ namespace BetterCapture.App;
 
 public sealed partial class MainWindow : Window
 {
+    private const double PreferredWidthDip = 640;
+    private const double PreferredHeightDip = 540;
+    private const double WorkAreaMarginDip = 24;
+
     private readonly WindowsGraphicsCaptureService _captureService = new();
     private readonly AppSettingsService _settingsService = new();
     private readonly CaptureWorkflow _workflow;
@@ -30,8 +34,9 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         AppWindow.SetIcon("Assets/AppIcon.ico");
-        ResizeAndCenter();
         RootFrame.Navigate(typeof(MainPage));
+        RootFrame.Loaded += RootFrame_Loaded;
+        ResizeAndCenter();
 
         _page = (MainPage)RootFrame.Content;
         _page.ScreenshotCaptureRequested = CaptureScreenshotAsync;
@@ -47,18 +52,31 @@ public sealed partial class MainWindow : Window
 
     private void ResizeAndCenter()
     {
-        const int width = 560;
-        const int height = 475;
-        AppWindow.Resize(new SizeInt32(width, height));
-
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest);
-        if (area is not null)
+        if (area is null)
         {
-            var workArea = area.WorkArea;
-            AppWindow.Move(new PointInt32(
-                workArea.X + Math.Max(0, (workArea.Width - width) / 2),
-                workArea.Y + Math.Max(0, (workArea.Height - height) / 2)));
+            return;
         }
+
+        var scale = Math.Max(1d, RootFrame.XamlRoot?.RasterizationScale ?? 1d);
+        var margin = (int)Math.Ceiling(WorkAreaMarginDip * scale);
+        var workArea = area.WorkArea;
+        var availableWidth = Math.Max(1, workArea.Width - (margin * 2));
+        var availableHeight = Math.Max(1, workArea.Height - (margin * 2));
+        var width = Math.Min(availableWidth, (int)Math.Ceiling(PreferredWidthDip * scale));
+        var height = Math.Min(availableHeight, (int)Math.Ceiling(PreferredHeightDip * scale));
+
+        AppWindow.MoveAndResize(new RectInt32(
+            workArea.X + Math.Max(0, (workArea.Width - width) / 2),
+            workArea.Y + Math.Max(0, (workArea.Height - height) / 2),
+            width,
+            height));
+    }
+
+    private void RootFrame_Loaded(object sender, RoutedEventArgs e)
+    {
+        RootFrame.Loaded -= RootFrame_Loaded;
+        ResizeAndCenter();
     }
 
     private void OnActivated(object sender, WindowActivatedEventArgs args)

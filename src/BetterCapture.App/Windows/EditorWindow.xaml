@@ -11,6 +11,7 @@
 
     <Grid>
         <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="OpenImageAccelerator_Invoked" />
             <KeyboardAccelerator Key="S" Modifiers="Control" Invoked="SaveAccelerator_Invoked" />
             <KeyboardAccelerator Key="S" Modifiers="Control,Shift" Invoked="SaveAsAccelerator_Invoked" />
             <KeyboardAccelerator x:Name="DocumentUndoAccelerator" Key="Z" Modifiers="Control" Invoked="UndoAccelerator_Invoked" />
@@ -30,6 +31,8 @@
 
         <MenuBar>
             <MenuBarItem x:Uid="EditorMenuFile" Title="File">
+                <MenuFlyoutItem x:Uid="EditorMenuOpen" Text="Open…" Click="OpenImageMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+O" />
+                <MenuFlyoutSeparator />
                 <MenuFlyoutItem x:Uid="EditorMenuSave" Text="Save" Click="SaveButton_Click" KeyboardAcceleratorTextOverride="Ctrl+S" />
                 <MenuFlyoutItem x:Uid="EditorMenuSaveAs" Text="Save as…" Click="SaveAsMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+Shift+S" />
                 <MenuFlyoutSeparator />
@@ -58,16 +61,24 @@
                 <MenuFlyoutItem x:Uid="EditorMenuText" Text="Text" Click="TextButton_Click" />
                 <MenuFlyoutItem x:Uid="EditorMenuWatermark" Text="Watermark" Click="WatermarkButton_Click" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuArrow" Text="Arrow" Click="ArrowButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuRectangle" Text="Rectangle" Click="RectangleButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuEllipse" Text="Ellipse" Click="EllipseButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuTriangle" Text="Triangle" Click="TriangleButton_Click" />
+                <MenuFlyoutSubItem x:Uid="EditorMenuShapes" Text="Shapes">
+                    <MenuFlyoutItem x:Uid="EditorMenuArrow" Text="Arrow" Click="ArrowButton_Click" />
+                    <MenuFlyoutItem x:Uid="EditorMenuRectangle" Text="Rectangle" Click="RectangleButton_Click" />
+                    <MenuFlyoutItem x:Uid="EditorMenuEllipse" Text="Ellipse" Click="EllipseButton_Click" />
+                    <MenuFlyoutItem x:Uid="EditorMenuTriangle" Text="Triangle" Click="TriangleButton_Click" />
+                </MenuFlyoutSubItem>
             </MenuBarItem>
             <MenuBarItem x:Uid="EditorMenuView" Title="View">
                 <MenuFlyoutItem x:Uid="EditorMenuZoomIn" Text="Zoom in" Click="ZoomInButton_Click" KeyboardAcceleratorTextOverride="Ctrl++" />
                 <MenuFlyoutItem x:Uid="EditorMenuZoomOut" Text="Zoom out" Click="ZoomOutButton_Click" KeyboardAcceleratorTextOverride="Ctrl+-" />
                 <MenuFlyoutItem x:Uid="EditorMenuActualSize" Text="Actual size" Click="ActualSizeMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+0" />
                 <MenuFlyoutItem x:Uid="EditorMenuFit" Text="Fit to window" Click="FitButton_Click" />
+                <MenuFlyoutSeparator />
+                <ToggleMenuFlyoutItem x:Name="PropertiesPanelMenuItem"
+                                      x:Uid="EditorMenuProperties"
+                                      IsChecked="True"
+                                      Text="Properties"
+                                      Click="PropertiesPanelMenuItem_Click" />
             </MenuBarItem>
             <MenuBarItem x:Uid="EditorMenuHelp" Title="Help">
                 <MenuFlyoutItem x:Uid="EditorMenuShortcuts" Text="Keyboard shortcuts" Click="ShortcutsMenuItem_Click" />
@@ -102,7 +113,7 @@
         <Grid Grid.Row="2" Background="#FF111111">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="292" />
+                <ColumnDefinition x:Name="PropertiesColumn" Width="292" />
             </Grid.ColumnDefinitions>
             <ScrollViewer x:Name="EditorScrollViewer"
                           HorizontalScrollBarVisibility="Auto"
@@ -147,7 +158,8 @@
                 </Grid>
             </ScrollViewer>
 
-            <Border Grid.Column="1"
+            <Border x:Name="PropertiesPanel"
+                    Grid.Column="1"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1,0,0,0">

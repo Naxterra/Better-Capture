@@ -20,6 +20,7 @@ internal sealed partial class EditorWindow : Window
 {
     private readonly EditorDocument _document;
     private readonly Func<Task>? _openLibrary;
+    private readonly List<EditorWindow> _childEditors = [];
     private EditorInteractionTool _tool = EditorInteractionTool.Select;
     private EditorShape _shape = EditorShape.Arrow;
     private WinPoint? _dragStart;
@@ -211,6 +212,37 @@ internal sealed partial class EditorWindow : Window
         CommitInlineText();
         _document.Save();
         EditorStatusText.Text = Localizer.Get("EditorSaved");
+    }
+
+    private async void OpenImageMenuItem_Click(object sender, RoutedEventArgs e) =>
+        await OpenImageAsync();
+
+    private async Task OpenImageAsync()
+    {
+        var picker = new global::Windows.Storage.Pickers.FileOpenPicker
+        {
+            SuggestedStartLocation = global::Windows.Storage.Pickers.PickerLocationId.PicturesLibrary,
+            ViewMode = global::Windows.Storage.Pickers.PickerViewMode.Thumbnail,
+        };
+        picker.FileTypeFilter.Add(".png");
+        picker.FileTypeFilter.Add(".jpg");
+        picker.FileTypeFilter.Add(".jpeg");
+        picker.FileTypeFilter.Add(".bmp");
+        picker.FileTypeFilter.Add(".webp");
+        WinRT.Interop.InitializeWithWindow.Initialize(
+            picker,
+            WinRT.Interop.WindowNative.GetWindowHandle(this));
+
+        var file = await picker.PickSingleFileAsync();
+        if (file is null)
+        {
+            return;
+        }
+
+        var editor = new EditorWindow(file.Path, _openLibrary);
+        _childEditors.Add(editor);
+        editor.Closed += (_, _) => _childEditors.Remove(editor);
+        editor.Activate();
     }
 
     private async void SaveAsMenuItem_Click(object sender, RoutedEventArgs e)
@@ -587,6 +619,13 @@ internal sealed partial class EditorWindow : Window
         ZoomText.Text = $"{zoom:P0}";
     }
 
+    private void PropertiesPanelMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var isVisible = PropertiesPanelMenuItem.IsChecked;
+        PropertiesPanel.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        PropertiesColumn.Width = isVisible ? new GridLength(292) : new GridLength(0);
+    }
+
     private void SetShape(EditorShape shape)
     {
         _shape = shape;
@@ -708,6 +747,14 @@ internal sealed partial class EditorWindow : Window
     {
         SaveDocument();
         args.Handled = true;
+    }
+
+    private async void OpenImageAccelerator_Invoked(
+        KeyboardAccelerator sender,
+        KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        await OpenImageAsync();
     }
 
     private void SaveAsAccelerator_Invoked(
