@@ -11,19 +11,25 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Padding="22,16,22,22" Spacing="12">
-                <Grid>
+                <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel Spacing="2">
+                    <Image Width="38"
+                           Height="38"
+                           VerticalAlignment="Center"
+                           Source="Assets/BetterCaptureLogo-1024.png"
+                           Stretch="Uniform" />
+                    <StackPanel Grid.Column="1" Spacing="2">
                         <TextBlock x:Uid="CompactPrompt" FontSize="20" FontWeight="SemiBold" Text="Choose capture type" />
                         <TextBlock x:Uid="CompactHint"
                                    FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    Text="The same smart selector handles windows, full screen, and custom areas." />
                     </StackPanel>
-                    <Border Grid.Column="1" Padding="9,5"
+                    <Border Grid.Column="2" Padding="9,5"
                             VerticalAlignment="Center"
                             Background="{ThemeResource AccentFillColorSecondaryBrush}"
                             CornerRadius="14">

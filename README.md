@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/BetterCapture.App/Assets/BetterCaptureLogo-1024.png" width="128" alt="BetterCapture logo">
+</p>
+
 # BetterCapture
 
 Created and owned by **Naxterra** · [github@shades.dev](mailto:github@shades.dev)
@@ -26,7 +30,7 @@ The first milestone has one acceptance test:
   and 10–1600% zoom
 - Location-first inline text boxes that remain editable after placement
 - Conventional localized File/Edit/Image/Tools/View/Help menus with keyboard
-  shortcuts and a separate fixed canvas-tool/property strip
+  shortcuts, a fixed canvas toolbar, and a dedicated contextual properties sidebar
 - Print Screen global hotkey
 - User-selectable library root with `YYYY\MM` folders
 - PNG metadata and JSON sidecars describing the source app and window
@@ -45,6 +49,12 @@ modules. They intentionally do not share state with the capture engine. See
 dotnet restore .\BetterCapture.slnx
 dotnet build .\BetterCapture.slnx -c Debug -p:Platform=x64
 dotnet test .\tests\BetterCapture.Core.Tests\BetterCapture.Core.Tests.csproj -c Debug
+```
+
+Build the native x64 Windows installer after installing Inno Setup 7:
+
+```powershell
+.\installer\Build-Installer.ps1
 ```
 
 To validate the FP16 path without launching the full UI, place the mouse on the
