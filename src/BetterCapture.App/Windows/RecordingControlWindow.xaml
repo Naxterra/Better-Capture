@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="BetterCapture.App.Windows.RecordingControlWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="BetterCapture recording">
+
+    <Border Padding="14,11"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Ellipse Width="13" Height="13" VerticalAlignment="Center" Fill="#FFE43D42" />
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <StackPanel Orientation="Horizontal" Spacing="9">
+                    <TextBlock x:Uid="RecordingLabel" FontWeight="SemiBold" Text="Recording" />
+                    <TextBlock x:Name="ElapsedText" FontFamily="Consolas" Text="00:00" />
+                </StackPanel>
+                <TextBlock x:Name="SourceText"
+                           MaxWidth="235"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button x:Name="StopButton"
+                    x:Uid="StopButton"
+                    Grid.Column="2"
+                    Click="StopButton_Click"
+                    Content="Stop"
+                    Style="{StaticResource AccentButtonStyle}" />
+        </Grid>
+    </Border>
+</Window>
