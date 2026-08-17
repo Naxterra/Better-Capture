@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="BetterCapture.App.Windows.SelectionOverlayWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="BetterCapture region selection"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Background="Black">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Escape" Invoked="CancelAccelerator_Invoked" />
+        </Grid.KeyboardAccelerators>
+        <Image x:Name="PreviewImage" IsHitTestVisible="False" Stretch="Fill" />
+
+        <Canvas x:Name="InteractionCanvas"
+                Background="#01000000"
+                PointerMoved="InteractionCanvas_PointerMoved"
+                PointerPressed="InteractionCanvas_PointerPressed"
+                PointerReleased="InteractionCanvas_PointerReleased">
+            <Rectangle x:Name="TopShade" Fill="#70000000" />
+            <Rectangle x:Name="BottomShade" Fill="#70000000" />
+            <Rectangle x:Name="LeftShade" Fill="#70000000" />
+            <Rectangle x:Name="RightShade" Fill="#70000000" />
+
+            <Rectangle x:Name="SelectionRectangle"
+                       IsHitTestVisible="False"
+                       Stroke="White"
+                       StrokeThickness="2"
+                       Visibility="Collapsed" />
+
+            <Border x:Name="DimensionBadge"
+                    MaxWidth="680"
+                    Padding="9,5"
+                    Background="#E61C1C1C"
+                    CornerRadius="6"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="DimensionText"
+                           FontFamily="Consolas"
+                           FontSize="13"
+                           Foreground="White"
+                           TextTrimming="CharacterEllipsis" />
+            </Border>
+
+            <Border x:Name="Loupe"
+                    Width="176"
+                    Height="206"
+                    Padding="4"
+                    Background="#F2181818"
+                    BorderBrush="White"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    IsHitTestVisible="False">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="168" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Background="Black">
+                        <Image x:Name="LoupeImage" Stretch="Fill" />
+                        <Rectangle HorizontalAlignment="Center" Width="1" Fill="#D9FFFFFF" />
+                        <Rectangle VerticalAlignment="Center" Height="1" Fill="#D9FFFFFF" />
+                        <Border Width="10" Height="10" BorderBrush="#FFFFC83D" BorderThickness="2" />
+                    </Grid>
+                    <TextBlock x:Name="CoordinateText"
+                               Grid.Row="1"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontFamily="Consolas"
+                               FontSize="12"
+                               Foreground="White" />
+                </Grid>
+            </Border>
+
+            <Border x:Name="InstructionBar"
+                    Padding="14,9"
+                    Background="#E61C1C1C"
+                    CornerRadius="8"
+                    IsHitTestVisible="False">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock x:Uid="OverlayPrimary" FontWeight="SemiBold" Foreground="White" Text="Click a window or drag a custom area" />
+                    <TextBlock x:Uid="OverlaySecondary" Foreground="#BFFFFFFF" Text="•  right-click or Esc to cancel" />
+                </StackPanel>
+            </Border>
+
+        </Canvas>
+    </Grid>
+</Window>

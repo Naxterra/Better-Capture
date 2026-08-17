@@ -42,16 +42,16 @@ modules. They intentionally do not share state with the capture engine. See
 ## Build
 
 ```powershell
-dotnet restore .\NaxCapture.slnx
-dotnet build .\NaxCapture.slnx -c Debug -p:Platform=x64
-dotnet test .\tests\NaxCapture.Core.Tests\NaxCapture.Core.Tests.csproj -c Debug
+dotnet restore .\BetterCapture.slnx
+dotnet build .\BetterCapture.slnx -c Debug -p:Platform=x64
+dotnet test .\tests\BetterCapture.Core.Tests\BetterCapture.Core.Tests.csproj -c Debug
 ```
 
 To validate the FP16 path without launching the full UI, place the mouse on the
 target display and run:
 
 ```powershell
-dotnet run --project .\tools\NaxCapture.CaptureProbe\NaxCapture.CaptureProbe.csproj
+dotnet run --project .\tools\BetterCapture.CaptureProbe\BetterCapture.CaptureProbe.csproj
 ```
 
 The app is packaged and self-contained. The Windows setting **Use the Print
