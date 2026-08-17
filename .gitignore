@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.vs/
+artifacts/
+TestResults/
+AppPackages/
+BundleArtifacts/
+unpackaged-bin/
+*.user
+*.suo
+*.pfx
+*.cer
+*.partial

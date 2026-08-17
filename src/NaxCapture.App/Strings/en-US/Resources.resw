@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppTitleBar.Title" xml:space="preserve"><value>BetterCapture</value></data>
+  <data name="AppTitleBar.Subtitle" xml:space="preserve"><value>Local HDR capture</value></data>
+  <data name="HeroTitle.Text" xml:space="preserve"><value>Capture without fighting the app</value></data>
+  <data name="HeroSubtitle.Text" xml:space="preserve"><value>FP16 HDR capture, useful defaults, ordinary local files. No account and no cloud dependency.</value></data>
+  <data name="SmartCaptureTitle.Text" xml:space="preserve"><value>Smart capture</value></data>
+  <data name="SmartCaptureDescription.Text" xml:space="preserve"><value>Hover and click a window, or drag any custom area. Maximized and full-screen windows are recognized automatically.</value></data>
+  <data name="PrintScreenKey.Text" xml:space="preserve"><value>Print Screen</value></data>
+  <data name="PipelineTitle.Text" xml:space="preserve"><value>Capture pipeline</value></data>
+  <data name="CaptureLabel.Text" xml:space="preserve"><value>Capture</value></data>
+  <data name="CaptureValue.Text" xml:space="preserve"><value>R16G16B16A16_FLOAT</value></data>
+  <data name="HdrMasterLabel.Text" xml:space="preserve"><value>HDR master</value></data>
+  <data name="HdrMasterValue.Text" xml:space="preserve"><value>OpenEXR · linear scRGB</value></data>
+  <data name="CompatibilityLabel.Text" xml:space="preserve"><value>Compatibility</value></data>
+  <data name="CompatibilityValue.Text" xml:space="preserve"><value>Tone-mapped sRGB PNG + clipboard</value></data>
+  <data name="CursorToggle.Header" xml:space="preserve"><value>Include mouse pointer</value></data>
+  <data name="LocalOutputTitle.Text" xml:space="preserve"><value>Local library</value></data>
+  <data name="OpenFolderText.Text" xml:space="preserve"><value>Open folder</value></data>
+  <data name="ChangeFolderText.Text" xml:space="preserve"><value>Change location</value></data>
+  <data name="LibraryDescription.Text" xml:space="preserve"><value>Files are organized by year and month. Metadata records the source app and window; the index never owns the only copy.</value></data>
+  <data name="HotkeyInfo.Title" xml:space="preserve"><value>Print Screen</value></data>
+  <data name="HotkeyInfo.Message" xml:space="preserve"><value>Registering the global shortcut…</value></data>
+  <data name="StatusText.Text" xml:space="preserve"><value>Ready</value></data>
+  <data name="OverlayPrimary.Text" xml:space="preserve"><value>Click a window or drag a custom area</value></data>
+  <data name="OverlaySecondary.Text" xml:space="preserve"><value>•  right-click or Esc to cancel</value></data>
+  <data name="PreparingSmartCapture" xml:space="preserve"><value>Preparing smart capture…</value></data>
+  <data name="CaptureFailedTitle" xml:space="preserve"><value>Capture failed</value></data>
+  <data name="UseThisFolder" xml:space="preserve"><value>Use this folder</value></data>
+  <data name="Ready" xml:space="preserve"><value>Ready</value></data>
+  <data name="PrintScreenReadyTitle" xml:space="preserve"><value>Print Screen is ready</value></data>
+  <data name="PrintScreenReadyMessage" xml:space="preserve"><value>Press Print Screen anywhere to start smart capture.</value></data>
+  <data name="PrintScreenReservedTitle" xml:space="preserve"><value>Print Screen is reserved by Windows</value></data>
+  <data name="PrintScreenReservedMessage" xml:space="preserve"><value>Global shortcut registration failed (Win32 {0}). Turn off ‘Use the Print Screen key to open screen capture’ in Windows keyboard settings.</value></data>
+  <data name="HdrCaptureSaved" xml:space="preserve"><value>HDR capture saved</value></data>
+  <data name="CaptureSaved" xml:space="preserve"><value>Capture saved</value></data>
+  <data name="CaptureResultMessage" xml:space="preserve"><value>{0} · {1} × {2} · SDR white {3:F0} nits · PNG copied to clipboard</value></data>
+  <data name="SavedStatus" xml:space="preserve"><value>Saved {0}</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="WindowsDesktop" xml:space="preserve"><value>Windows Desktop</value></data>
+  <data name="WindowsApplication" xml:space="preserve"><value>Windows application</value></data>
+  <data name="SelectorWindowTitle" xml:space="preserve"><value>BetterCapture smart selection</value></data>
+  <data name="RecordingLabel.Text" xml:space="preserve"><value>Recording</value></data>
+  <data name="StopButton.Content" xml:space="preserve"><value>Stop</value></data>
+  <data name="RecordingWindowTitle" xml:space="preserve"><value>BetterCapture recording</value></data>
+  <data name="CompactPrompt.Text" xml:space="preserve"><value>Choose capture type</value></data>
+  <data name="CompactHint.Text" xml:space="preserve"><value>The same smart selector handles windows, full screen, and custom areas.</value></data>
+  <data name="ScreenshotTitle.Text" xml:space="preserve"><value>Screenshot</value></data>
+  <data name="ScreenshotHint.Text" xml:space="preserve"><value>Click a window or drag an area</value></data>
+  <data name="VideoTitle.Text" xml:space="preserve"><value>Video</value></data>
+  <data name="VideoHint.Text" xml:space="preserve"><value>Record the selected window or area</value></data>
+  <data name="LibraryLabel.Text" xml:space="preserve"><value>Library</value></data>
+  <data name="OpenFolder" xml:space="preserve"><value>Open folder</value></data>
+  <data name="ChangeLocation" xml:space="preserve"><value>Change location</value></data>
+  <data name="PreparingVideoCapture" xml:space="preserve"><value>Preparing video capture…</value></data>
+  <data name="VideoSaved" xml:space="preserve"><value>Video saved</value></data>
+  <data name="VideoResultMessage" xml:space="preserve"><value>{0} · {1} × {2} · {3:mm\:ss}</value></data>
+  <data name="EditorSave.Content" xml:space="preserve"><value>Save</value></data>
+  <data name="EditorUndo.Content" xml:space="preserve"><value>Undo</value></data>
+  <data name="EditorRedo.Content" xml:space="preserve"><value>Redo</value></data>
+  <data name="EditorSelect.Content" xml:space="preserve"><value>Select</value></data>
+  <data name="EditorCrop.Content" xml:space="preserve"><value>Crop</value></data>
+  <data name="EditorResize.Content" xml:space="preserve"><value>Resize</value></data>
+  <data name="EditorBlur.Content" xml:space="preserve"><value>Blur</value></data>
+  <data name="EditorCopy.Content" xml:space="preserve"><value>Copy</value></data>
+  <data name="EditorCut.Content" xml:space="preserve"><value>Cut</value></data>
+  <data name="EditorPaste.Content" xml:space="preserve"><value>Paste</value></data>
+  <data name="EditorText.Content" xml:space="preserve"><value>Text</value></data>
+  <data name="EditorWatermark.Content" xml:space="preserve"><value>Watermark</value></data>
+  <data name="EditorArrow.Content" xml:space="preserve"><value>Arrow</value></data>
+  <data name="EditorRectangle.Content" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="EditorEllipse.Content" xml:space="preserve"><value>Ellipse</value></data>
+  <data name="EditorTriangle.Content" xml:space="preserve"><value>Triangle</value></data>
+  <data name="EditorFit.Content" xml:space="preserve"><value>Fit</value></data>
+  <data name="ColorRed.Content" xml:space="preserve"><value>Red</value></data>
+  <data name="ColorYellow.Content" xml:space="preserve"><value>Yellow</value></data>
+  <data name="ColorWhite.Content" xml:space="preserve"><value>White</value></data>
+  <data name="ColorBlack.Content" xml:space="preserve"><value>Black</value></data>
+  <data name="ColorBlue.Content" xml:space="preserve"><value>Blue</value></data>
+  <data name="EditorWindowTitle" xml:space="preserve"><value>BetterCapture Editor</value></data>
+  <data name="EditorSelectHint" xml:space="preserve"><value>Drag to select an area.</value></data>
+  <data name="EditorCropHint" xml:space="preserve"><value>Drag the area to keep.</value></data>
+  <data name="EditorBlurHint" xml:space="preserve"><value>Drag the area to blur.</value></data>
+  <data name="EditorShapeHint" xml:space="preserve"><value>Drag to draw the selected shape.</value></data>
+  <data name="EditorTextHint" xml:space="preserve"><value>Click where the text should be placed.</value></data>
+  <data name="EditorTextPlacementHint" xml:space="preserve"><value>Click a location or drag a text box. Click existing text to edit it.</value></data>
+  <data name="EditorSelectFirst" xml:space="preserve"><value>Select an area first.</value></data>
+  <data name="EditorCopied" xml:space="preserve"><value>Selection copied to the clipboard.</value></data>
+  <data name="EditorClipboardNoImage" xml:space="preserve"><value>The clipboard does not contain an image.</value></data>
+  <data name="EditorSaved" xml:space="preserve"><value>Image saved.</value></data>
+  <data name="Width" xml:space="preserve"><value>Width</value></data>
+  <data name="Height" xml:space="preserve"><value>Height</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Place" xml:space="preserve"><value>Place</value></data>
+  <data name="OpenLibrary" xml:space="preserve"><value>Open library</value></data>
+  <data name="LibraryWindowTitle" xml:space="preserve"><value>BetterCapture Library</value></data>
+  <data name="LibraryWindowHeading.Text" xml:space="preserve"><value>Library</value></data>
+  <data name="LibrarySearchBox.PlaceholderText" xml:space="preserve"><value>Search app, window, or filename</value></data>
+  <data name="LibraryEdit.Content" xml:space="preserve"><value>Edit</value></data>
+  <data name="LibraryOpen.Content" xml:space="preserve"><value>Open</value></data>
+  <data name="LibraryRefresh.Content" xml:space="preserve"><value>Refresh</value></data>
+  <data name="LibraryEmpty.Text" xml:space="preserve"><value>No captures yet</value></data>
+  <data name="LibraryEmptyHint.Text" xml:space="preserve"><value>New screenshots and videos will appear here automatically.</value></data>
+  <data name="LibraryItemCount" xml:space="preserve"><value>{0} items</value></data>
+  <data name="EditorMenuFile.Title" xml:space="preserve"><value>File</value></data>
+  <data name="EditorMenuEdit.Title" xml:space="preserve"><value>Edit</value></data>
+  <data name="EditorMenuImage.Title" xml:space="preserve"><value>Image</value></data>
+  <data name="EditorMenuTools.Title" xml:space="preserve"><value>Tools</value></data>
+  <data name="EditorMenuView.Title" xml:space="preserve"><value>View</value></data>
+  <data name="EditorMenuHelp.Title" xml:space="preserve"><value>Help</value></data>
+  <data name="EditorMenuSave.Text" xml:space="preserve"><value>Save</value></data>
+  <data name="EditorMenuSaveAs.Text" xml:space="preserve"><value>Save as…</value></data>
+  <data name="EditorMenuLibrary.Text" xml:space="preserve"><value>Open library</value></data>
+  <data name="EditorMenuClose.Text" xml:space="preserve"><value>Close editor</value></data>
+  <data name="EditorMenuUndo.Text" xml:space="preserve"><value>Undo</value></data>
+  <data name="EditorMenuRedo.Text" xml:space="preserve"><value>Redo</value></data>
+  <data name="EditorMenuCut.Text" xml:space="preserve"><value>Cut</value></data>
+  <data name="EditorMenuCopy.Text" xml:space="preserve"><value>Copy</value></data>
+  <data name="EditorMenuPaste.Text" xml:space="preserve"><value>Paste</value></data>
+  <data name="EditorMenuSelectAll.Text" xml:space="preserve"><value>Select all</value></data>
+  <data name="EditorMenuDeselect.Text" xml:space="preserve"><value>Deselect</value></data>
+  <data name="EditorMenuCrop.Text" xml:space="preserve"><value>Crop</value></data>
+  <data name="EditorMenuResize.Text" xml:space="preserve"><value>Resize…</value></data>
+  <data name="EditorMenuBlur.Text" xml:space="preserve"><value>Blur area</value></data>
+  <data name="EditorMenuSelect.Text" xml:space="preserve"><value>Selection</value></data>
+  <data name="EditorMenuText.Text" xml:space="preserve"><value>Text</value></data>
+  <data name="EditorMenuWatermark.Text" xml:space="preserve"><value>Watermark</value></data>
+  <data name="EditorMenuArrow.Text" xml:space="preserve"><value>Arrow</value></data>
+  <data name="EditorMenuRectangle.Text" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="EditorMenuEllipse.Text" xml:space="preserve"><value>Ellipse</value></data>
+  <data name="EditorMenuTriangle.Text" xml:space="preserve"><value>Triangle</value></data>
+  <data name="EditorMenuZoomIn.Text" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="EditorMenuZoomOut.Text" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="EditorMenuActualSize.Text" xml:space="preserve"><value>Actual size</value></data>
+  <data name="EditorMenuFit.Text" xml:space="preserve"><value>Fit to window</value></data>
+  <data name="EditorMenuShortcuts.Text" xml:space="preserve"><value>Keyboard shortcuts</value></data>
+  <data name="EditorMenuAbout.Text" xml:space="preserve"><value>About BetterCapture Editor</value></data>
+  <data name="EditorPropertiesLabel.Text" xml:space="preserve"><value>Properties</value></data>
+  <data name="EditorSelectionAll" xml:space="preserve"><value>The complete image is selected.</value></data>
+  <data name="EditorKeyboardShortcuts" xml:space="preserve"><value>Keyboard shortcuts</value></data>
+  <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Ctrl+S  Save&#x0A;Ctrl+Shift+S  Save as&#x0A;Ctrl+Z / Ctrl+Y  Undo / Redo&#x0A;Ctrl+X / Ctrl+C / Ctrl+V  Cut / Copy / Paste&#x0A;Ctrl+A  Select all&#x0A;Ctrl+0  Actual size&#x0A;Ctrl+Enter  Finish inline text&#x0A;Escape  Cancel inline text</value></data>
+  <data name="EditorAboutTitle" xml:space="preserve"><value>About BetterCapture Editor</value></data>
+  <data name="EditorAboutText" xml:space="preserve"><value>BetterCapture provides local, offline screenshot editing with editable annotations and no cloud dependency.</value></data>
+</root>
