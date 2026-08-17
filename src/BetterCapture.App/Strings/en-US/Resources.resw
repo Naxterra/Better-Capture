@@ -141,6 +141,10 @@
   <data name="EditorMenuShortcuts.Text" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="EditorMenuAbout.Text" xml:space="preserve"><value>About BetterCapture Editor</value></data>
   <data name="EditorPropertiesLabel.Text" xml:space="preserve"><value>Properties</value></data>
+  <data name="EditorNoPropertiesHint.Text" xml:space="preserve"><value>Choose a drawing or text tool to edit its properties.</value></data>
+  <data name="EditorColorLabel.Text" xml:space="preserve"><value>Color</value></data>
+  <data name="EditorFontLabel.Text" xml:space="preserve"><value>Font</value></data>
+  <data name="EditorFontSizeLabel.Text" xml:space="preserve"><value>Size</value></data>
   <data name="EditorSelectionAll" xml:space="preserve"><value>The complete image is selected.</value></data>
   <data name="EditorKeyboardShortcuts" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Ctrl+S  Save&#x0A;Ctrl+Shift+S  Save as&#x0A;Ctrl+Z / Ctrl+Y  Undo / Redo&#x0A;Ctrl+X / Ctrl+C / Ctrl+V  Cut / Copy / Paste&#x0A;Ctrl+A  Select all&#x0A;Ctrl+0  Actual size&#x0A;Ctrl+Enter  Finish inline text&#x0A;Escape  Cancel inline text</value></data>
