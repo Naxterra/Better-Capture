@@ -74,14 +74,24 @@
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
                         CornerRadius="9">
-                    <Grid ColumnSpacing="10">
+                    <Grid ColumnSpacing="10" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <ToggleSwitch x:Name="CursorToggle" x:Uid="CursorToggle" Header="Include pointer" IsOn="True" />
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <StackPanel Grid.RowSpan="2" Spacing="7">
+                            <ToggleSwitch x:Name="CursorToggle" x:Uid="CursorToggle" Header="Include pointer" IsOn="True" />
+                            <ToggleSwitch x:Name="StartupToggle"
+                                          x:Uid="StartupToggle"
+                                          Header="Start with Windows"
+                                          Toggled="StartupToggle_Toggled" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center" Spacing="1">
                             <TextBlock x:Uid="LibraryLabel" FontSize="12" FontWeight="SemiBold" Text="Library" />
                             <TextBlock x:Name="OutputFolderText"
                                        MaxWidth="230"
@@ -89,7 +99,7 @@
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        TextTrimming="CharacterEllipsis" />
                         </StackPanel>
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                        <StackPanel Grid.Column="2" Grid.RowSpan="2" VerticalAlignment="Center" Orientation="Horizontal" Spacing="5">
                             <Button x:Name="OpenFolderButton"
                                     x:Uid="OpenFolderButton"
                                     Click="OpenFolderButton_Click"

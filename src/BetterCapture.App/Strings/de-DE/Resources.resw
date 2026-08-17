@@ -19,6 +19,8 @@
   <data name="CompatibilityLabel.Text" xml:space="preserve"><value>Kompatibilität</value></data>
   <data name="CompatibilityValue.Text" xml:space="preserve"><value>Tonwertgemapptes sRGB-PNG + Zwischenablage</value></data>
   <data name="CursorToggle.Header" xml:space="preserve"><value>Mauszeiger einbeziehen</value></data>
+  <data name="StartupToggle.Header" xml:space="preserve"><value>Mit Windows starten</value></data>
+  <data name="StartupSettingFailedTitle" xml:space="preserve"><value>Autostart-Einstellung konnte nicht geändert werden</value></data>
   <data name="LocalOutputTitle.Text" xml:space="preserve"><value>Lokale Bibliothek</value></data>
   <data name="OpenFolderText.Text" xml:space="preserve"><value>Ordner öffnen</value></data>
   <data name="ChangeFolderText.Text" xml:space="preserve"><value>Speicherort ändern</value></data>

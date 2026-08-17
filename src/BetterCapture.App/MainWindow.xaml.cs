@@ -13,7 +13,7 @@ namespace BetterCapture.App;
 public sealed partial class MainWindow : Window
 {
     private const double PreferredWidthDip = 640;
-    private const double PreferredHeightDip = 540;
+    private const double PreferredHeightDip = 600;
     private const double WorkAreaMarginDip = 24;
 
     private readonly WindowsGraphicsCaptureService _captureService = new();
@@ -45,7 +45,9 @@ public sealed partial class MainWindow : Window
         _page.OpenOutputFolderRequested = _workflow.OpenOutputFolderAsync;
         _page.ChangeLibraryFolderRequested = ChangeLibraryFolderAsync;
         _page.OpenLibraryRequested = OpenLibraryAsync;
+        _page.StartupSettingChanged = ChangeStartupSettingAsync;
         _page.SetOutputFolder(_workflow.OutputRoot);
+        _page.SetStartupEnabled(StartupRegistrationService.IsEnabled);
 
         Activated += OnActivated;
         Closed += OnClosed;
@@ -262,6 +264,23 @@ public sealed partial class MainWindow : Window
         {
             await _libraryWindow.SetRootAndRefreshAsync(_workflow.OutputRoot);
         }
+    }
+
+    private async Task<bool> ChangeStartupSettingAsync(bool enabled)
+    {
+        try
+        {
+            StartupRegistrationService.SetEnabled(enabled);
+        }
+        catch (Exception exception)
+        {
+            if (_page is not null)
+            {
+                await _page.ShowErrorAsync(Localizer.Get("StartupSettingFailedTitle"), exception.Message);
+            }
+        }
+
+        return StartupRegistrationService.IsEnabled;
     }
 
     private void OnClosed(object sender, WindowEventArgs args)
