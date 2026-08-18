@@ -39,7 +39,7 @@ internal sealed partial class EditorWindow : Window
         ApplyLocalization();
         WindowAppearanceService.ApplyDarkTitleBar(this);
         Title = $"{Localizer.Get("EditorWindowTitle")} — {Path.GetFileName(imagePath)}";
-        AppWindow.SetIcon("Assets/AppIcon.ico");
+        WindowAppearanceService.ApplyAppIcon(this);
         AppWindow.Resize(new SizeInt32(1280, 820));
         CenterWindow();
 

@@ -25,6 +25,11 @@
   <data name="Language" xml:space="preserve"><value>Language</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="StartupMenuItem" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="MinimizeToTrayMenuItem" xml:space="preserve"><value>Minimize to notification area</value></data>
+  <data name="TraySettingFailedTitle" xml:space="preserve"><value>Notification-area setting could not be changed</value></data>
+  <data name="TrayOpen" xml:space="preserve"><value>Open BetterCapture</value></data>
+  <data name="TrayCapture" xml:space="preserve"><value>Take screenshot</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>Exit BetterCapture</value></data>
   <data name="StorageLocationLabel" xml:space="preserve"><value>Save captures to</value></data>
   <data name="CaptureShortcutMenu" xml:space="preserve"><value>Capture shortcut: {0}</value></data>
   <data name="CaptureShortcutUnavailable" xml:space="preserve"><value>Capture shortcut: {0} (unavailable · Win32 {1})</value></data>

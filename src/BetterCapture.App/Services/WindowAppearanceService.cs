@@ -4,6 +4,19 @@ namespace BetterCapture.App.Services;
 
 internal static class WindowAppearanceService
 {
+    private static readonly string AppIconPath = Path.Combine(
+        AppContext.BaseDirectory,
+        "Assets",
+        "AppIcon.ico");
+
+    internal static void ApplyAppIcon(Window window)
+    {
+        if (File.Exists(AppIconPath))
+        {
+            window.AppWindow.SetIcon(AppIconPath);
+        }
+    }
+
     internal static void ApplyDarkTitleBar(Window window)
     {
         var titleBar = window.AppWindow.TitleBar;

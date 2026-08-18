@@ -40,6 +40,6 @@ internal static class StartupRegistrationService
             throw new InvalidOperationException("The BetterCapture executable path is unavailable.");
         }
 
-        key.SetValue(ValueName, $"\"{executablePath}\"", RegistryValueKind.String);
+        key.SetValue(ValueName, $"\"{executablePath}\" --background", RegistryValueKind.String);
     }
 }

@@ -4,8 +4,6 @@
 
 # BetterCapture
 
-Created and owned by **Naxterra** · [github@shades.dev](mailto:github@shades.dev)
-
 BetterCapture is a local-first, x64 Windows 11 capture application designed around
 HDR correctness, stability, and a deliberately small interface.
 
