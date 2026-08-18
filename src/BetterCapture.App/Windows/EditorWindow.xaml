@@ -11,14 +11,15 @@
 
     <Grid>
         <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="OpenImageAccelerator_Invoked" />
             <KeyboardAccelerator Key="S" Modifiers="Control" Invoked="SaveAccelerator_Invoked" />
             <KeyboardAccelerator Key="S" Modifiers="Control,Shift" Invoked="SaveAsAccelerator_Invoked" />
-            <KeyboardAccelerator Key="Z" Modifiers="Control" Invoked="UndoAccelerator_Invoked" />
-            <KeyboardAccelerator Key="Y" Modifiers="Control" Invoked="RedoAccelerator_Invoked" />
-            <KeyboardAccelerator Key="X" Modifiers="Control" Invoked="CutAccelerator_Invoked" />
-            <KeyboardAccelerator Key="C" Modifiers="Control" Invoked="CopyAccelerator_Invoked" />
-            <KeyboardAccelerator Key="V" Modifiers="Control" Invoked="PasteAccelerator_Invoked" />
-            <KeyboardAccelerator Key="A" Modifiers="Control" Invoked="SelectAllAccelerator_Invoked" />
+            <KeyboardAccelerator x:Name="DocumentUndoAccelerator" Key="Z" Modifiers="Control" Invoked="UndoAccelerator_Invoked" />
+            <KeyboardAccelerator x:Name="DocumentRedoAccelerator" Key="Y" Modifiers="Control" Invoked="RedoAccelerator_Invoked" />
+            <KeyboardAccelerator x:Name="DocumentCutAccelerator" Key="X" Modifiers="Control" Invoked="CutAccelerator_Invoked" />
+            <KeyboardAccelerator x:Name="DocumentCopyAccelerator" Key="C" Modifiers="Control" Invoked="CopyAccelerator_Invoked" />
+            <KeyboardAccelerator x:Name="DocumentPasteAccelerator" Key="V" Modifiers="Control" Invoked="PasteAccelerator_Invoked" />
+            <KeyboardAccelerator x:Name="DocumentSelectAllAccelerator" Key="A" Modifiers="Control" Invoked="SelectAllAccelerator_Invoked" />
             <KeyboardAccelerator Key="Number0" Modifiers="Control" Invoked="ActualSizeAccelerator_Invoked" />
         </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
@@ -29,50 +30,60 @@
         </Grid.RowDefinitions>
 
         <MenuBar>
-            <MenuBarItem x:Uid="EditorMenuFile" Title="File">
-                <MenuFlyoutItem x:Uid="EditorMenuSave" Text="Save" Click="SaveButton_Click" KeyboardAcceleratorTextOverride="Ctrl+S" />
-                <MenuFlyoutItem x:Uid="EditorMenuSaveAs" Text="Save as…" Click="SaveAsMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+Shift+S" />
+            <MenuBarItem x:Name="FileMenu" x:Uid="EditorMenuFile" Title="File">
+                <MenuFlyoutItem x:Name="OpenMenuItem" x:Uid="EditorMenuOpen" Text="Open…" Click="OpenImageMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+O" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuLibrary" Text="Open library" Click="OpenLibraryMenuItem_Click" />
+                <MenuFlyoutItem x:Name="SaveMenuItem" x:Uid="EditorMenuSave" Text="Save" Click="SaveButton_Click" KeyboardAcceleratorTextOverride="Ctrl+S" />
+                <MenuFlyoutItem x:Name="SaveAsMenuItem" x:Uid="EditorMenuSaveAs" Text="Save as…" Click="SaveAsMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+Shift+S" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuClose" Text="Close editor" Click="CloseMenuItem_Click" KeyboardAcceleratorTextOverride="Alt+F4" />
+                <MenuFlyoutItem x:Name="OpenLibraryMenuItem" x:Uid="EditorMenuLibrary" Text="Open library" Click="OpenLibraryMenuItem_Click" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem x:Name="CloseEditorMenuItem" x:Uid="EditorMenuClose" Text="Close editor" Click="CloseMenuItem_Click" KeyboardAcceleratorTextOverride="Alt+F4" />
             </MenuBarItem>
-            <MenuBarItem x:Uid="EditorMenuEdit" Title="Edit">
+            <MenuBarItem x:Name="EditMenu" x:Uid="EditorMenuEdit" Title="Edit">
                 <MenuFlyoutItem x:Name="UndoMenuItem" x:Uid="EditorMenuUndo" Text="Undo" Click="UndoButton_Click" KeyboardAcceleratorTextOverride="Ctrl+Z" />
                 <MenuFlyoutItem x:Name="RedoMenuItem" x:Uid="EditorMenuRedo" Text="Redo" Click="RedoButton_Click" KeyboardAcceleratorTextOverride="Ctrl+Y" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuCut" Text="Cut" Click="CutButton_Click" KeyboardAcceleratorTextOverride="Ctrl+X" />
-                <MenuFlyoutItem x:Uid="EditorMenuCopy" Text="Copy" Click="CopyButton_Click" KeyboardAcceleratorTextOverride="Ctrl+C" />
-                <MenuFlyoutItem x:Uid="EditorMenuPaste" Text="Paste" Click="PasteButton_Click" KeyboardAcceleratorTextOverride="Ctrl+V" />
+                <MenuFlyoutItem x:Name="CutMenuItem" x:Uid="EditorMenuCut" Text="Cut" Click="CutButton_Click" KeyboardAcceleratorTextOverride="Ctrl+X" />
+                <MenuFlyoutItem x:Name="CopyMenuItem" x:Uid="EditorMenuCopy" Text="Copy" Click="CopyButton_Click" KeyboardAcceleratorTextOverride="Ctrl+C" />
+                <MenuFlyoutItem x:Name="PasteMenuItem" x:Uid="EditorMenuPaste" Text="Paste" Click="PasteButton_Click" KeyboardAcceleratorTextOverride="Ctrl+V" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuSelectAll" Text="Select all" Click="SelectAllMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+A" />
-                <MenuFlyoutItem x:Uid="EditorMenuDeselect" Text="Deselect" Click="DeselectMenuItem_Click" KeyboardAcceleratorTextOverride="Esc" />
+                <MenuFlyoutItem x:Name="SelectAllMenuItem" x:Uid="EditorMenuSelectAll" Text="Select all" Click="SelectAllMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+A" />
+                <MenuFlyoutItem x:Name="DeselectMenuItem" x:Uid="EditorMenuDeselect" Text="Deselect" Click="DeselectMenuItem_Click" KeyboardAcceleratorTextOverride="Esc" />
             </MenuBarItem>
-            <MenuBarItem x:Uid="EditorMenuImage" Title="Image">
-                <MenuFlyoutItem x:Uid="EditorMenuCrop" Text="Crop" Click="CropButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuResize" Text="Resize…" Click="ResizeButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuBlur" Text="Blur area" Click="BlurButton_Click" />
+            <MenuBarItem x:Name="ImageMenu" x:Uid="EditorMenuImage" Title="Image">
+                <MenuFlyoutItem x:Name="CropMenuItem" x:Uid="EditorMenuCrop" Text="Crop" Click="CropButton_Click" />
+                <MenuFlyoutItem x:Name="ResizeMenuItem" x:Uid="EditorMenuResize" Text="Resize…" Click="ResizeButton_Click" />
+                <MenuFlyoutItem x:Name="BlurMenuItem" x:Uid="EditorMenuBlur" Text="Blur area" Click="BlurButton_Click" />
             </MenuBarItem>
-            <MenuBarItem x:Uid="EditorMenuTools" Title="Tools">
-                <MenuFlyoutItem x:Uid="EditorMenuSelect" Text="Selection" Click="SelectButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuText" Text="Text" Click="TextButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuWatermark" Text="Watermark" Click="WatermarkButton_Click" />
+            <MenuBarItem x:Name="ToolsMenu" x:Uid="EditorMenuTools" Title="Tools">
+                <MenuFlyoutItem x:Name="ToolSelectMenuItem" x:Uid="EditorMenuSelect" Text="Selection" Click="SelectButton_Click" />
+                <MenuFlyoutItem x:Name="ToolTextMenuItem" x:Uid="EditorMenuText" Text="Text" Click="TextButton_Click" />
+                <MenuFlyoutItem x:Name="ToolWatermarkMenuItem" x:Uid="EditorMenuWatermark" Text="Watermark" Click="WatermarkButton_Click" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuArrow" Text="Arrow" Click="ArrowButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuRectangle" Text="Rectangle" Click="RectangleButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuEllipse" Text="Ellipse" Click="EllipseButton_Click" />
-                <MenuFlyoutItem x:Uid="EditorMenuTriangle" Text="Triangle" Click="TriangleButton_Click" />
+                <MenuFlyoutSubItem x:Name="ShapesMenuItem" x:Uid="EditorMenuShapes" Text="Shapes">
+                    <MenuFlyoutItem x:Name="ArrowMenuItem" x:Uid="EditorMenuArrow" Text="Arrow" Click="ArrowButton_Click" />
+                    <MenuFlyoutItem x:Name="RectangleMenuItem" x:Uid="EditorMenuRectangle" Text="Rectangle" Click="RectangleButton_Click" />
+                    <MenuFlyoutItem x:Name="EllipseMenuItem" x:Uid="EditorMenuEllipse" Text="Ellipse" Click="EllipseButton_Click" />
+                    <MenuFlyoutItem x:Name="TriangleMenuItem" x:Uid="EditorMenuTriangle" Text="Triangle" Click="TriangleButton_Click" />
+                </MenuFlyoutSubItem>
             </MenuBarItem>
-            <MenuBarItem x:Uid="EditorMenuView" Title="View">
-                <MenuFlyoutItem x:Uid="EditorMenuZoomIn" Text="Zoom in" Click="ZoomInButton_Click" KeyboardAcceleratorTextOverride="Ctrl++" />
-                <MenuFlyoutItem x:Uid="EditorMenuZoomOut" Text="Zoom out" Click="ZoomOutButton_Click" KeyboardAcceleratorTextOverride="Ctrl+-" />
-                <MenuFlyoutItem x:Uid="EditorMenuActualSize" Text="Actual size" Click="ActualSizeMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+0" />
-                <MenuFlyoutItem x:Uid="EditorMenuFit" Text="Fit to window" Click="FitButton_Click" />
-            </MenuBarItem>
-            <MenuBarItem x:Uid="EditorMenuHelp" Title="Help">
-                <MenuFlyoutItem x:Uid="EditorMenuShortcuts" Text="Keyboard shortcuts" Click="ShortcutsMenuItem_Click" />
+            <MenuBarItem x:Name="ViewMenu" x:Uid="EditorMenuView" Title="View">
+                <MenuFlyoutItem x:Name="ZoomInMenuItem" x:Uid="EditorMenuZoomIn" Text="Zoom in" Click="ZoomInButton_Click" KeyboardAcceleratorTextOverride="Ctrl++" />
+                <MenuFlyoutItem x:Name="ZoomOutMenuItem" x:Uid="EditorMenuZoomOut" Text="Zoom out" Click="ZoomOutButton_Click" KeyboardAcceleratorTextOverride="Ctrl+-" />
+                <MenuFlyoutItem x:Name="ActualSizeMenuItem" x:Uid="EditorMenuActualSize" Text="Actual size" Click="ActualSizeMenuItem_Click" KeyboardAcceleratorTextOverride="Ctrl+0" />
+                <MenuFlyoutItem x:Name="FitMenuItem" x:Uid="EditorMenuFit" Text="Fit to window" Click="FitButton_Click" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Uid="EditorMenuAbout" Text="About BetterCapture Editor" Click="AboutMenuItem_Click" />
+                <ToggleMenuFlyoutItem x:Name="PropertiesPanelMenuItem"
+                                      x:Uid="EditorMenuProperties"
+                                      IsChecked="True"
+                                      Text="Properties"
+                                      Click="PropertiesPanelMenuItem_Click" />
+            </MenuBarItem>
+            <MenuBarItem x:Name="HelpMenu" x:Uid="EditorMenuHelp" Title="Help">
+                <MenuFlyoutItem x:Name="ShortcutsMenuItem" x:Uid="EditorMenuShortcuts" Text="Keyboard shortcuts" Click="ShortcutsMenuItem_Click" />
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem x:Name="AboutEditorMenuItem" x:Uid="EditorMenuAbout" Text="About BetterCapture Editor" Click="AboutMenuItem_Click" />
             </MenuBarItem>
         </MenuBar>
 
@@ -80,12 +91,11 @@
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="0,0,0,1">
-            <Grid Padding="10,7" ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <ScrollViewer Padding="10,7"
+                          HorizontalScrollBarVisibility="Auto"
+                          HorizontalScrollMode="Enabled"
+                          VerticalScrollBarVisibility="Disabled"
+                          VerticalScrollMode="Disabled">
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <ToggleButton x:Name="SelectButton" x:Uid="EditorSelect" Click="SelectButton_Click" Content="Select" />
                     <ToggleButton x:Name="CropButton" x:Uid="EditorCrop" Click="CropButton_Click" Content="Crop" />
@@ -97,38 +107,14 @@
                     <ToggleButton x:Name="TriangleButton" x:Uid="EditorTriangle" Click="TriangleButton_Click" Content="Triangle" />
                     <Button x:Name="WatermarkButton" x:Uid="EditorWatermark" Click="WatermarkButton_Click" Content="Watermark" />
                 </StackPanel>
-                <TextBlock x:Uid="EditorPropertiesLabel"
-                           Grid.Column="1"
-                           Margin="10,0,0,0"
-                           VerticalAlignment="Center"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           Text="Properties" />
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
-                    <ComboBox x:Name="ColorCombo"
-                              Width="92"
-                              SelectedIndex="0"
-                              SelectionChanged="TextStyle_Changed">
-                        <ComboBoxItem x:Uid="ColorRed" Content="Red" Tag="Red" />
-                        <ComboBoxItem x:Uid="ColorYellow" Content="Yellow" Tag="Yellow" />
-                        <ComboBoxItem x:Uid="ColorWhite" Content="White" Tag="White" />
-                        <ComboBoxItem x:Uid="ColorBlack" Content="Black" Tag="Black" />
-                        <ComboBoxItem x:Uid="ColorBlue" Content="Blue" Tag="Blue" />
-                    </ComboBox>
-                    <ComboBox x:Name="FontFamilyCombo"
-                              Width="180"
-                              SelectionChanged="TextStyle_Changed" />
-                    <NumberBox x:Name="FontSizeBox"
-                               Width="90"
-                               Value="28"
-                               Minimum="6"
-                               Maximum="300"
-                               SpinButtonPlacementMode="Compact"
-                               ValueChanged="FontSizeBox_ValueChanged" />
-                </StackPanel>
-            </Grid>
+            </ScrollViewer>
         </Border>
 
         <Grid Grid.Row="2" Background="#FF111111">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="PropertiesColumn" Width="292" />
+            </Grid.ColumnDefinitions>
             <ScrollViewer x:Name="EditorScrollViewer"
                           HorizontalScrollBarVisibility="Auto"
                           HorizontalScrollMode="Enabled"
@@ -171,6 +157,59 @@
                     </Canvas>
                 </Grid>
             </ScrollViewer>
+
+            <Border x:Name="PropertiesPanel"
+                    Grid.Column="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1,0,0,0">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              HorizontalScrollMode="Disabled"
+                              VerticalScrollBarVisibility="Auto"
+                              VerticalScrollMode="Enabled">
+                    <StackPanel Padding="16" Spacing="12">
+                    <TextBlock x:Name="PropertiesLabelText" x:Uid="EditorPropertiesLabel"
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               Text="Properties" />
+                    <TextBlock x:Name="NoPropertiesText"
+                               x:Uid="EditorNoPropertiesHint"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Text="Choose a drawing or text tool to edit its properties." />
+                    <StackPanel x:Name="ColorPropertyGroup"
+                                Spacing="5"
+                                Visibility="Collapsed">
+                        <TextBlock x:Name="ColorLabelText" x:Uid="EditorColorLabel" Text="Color" />
+                        <ComboBox x:Name="ColorCombo"
+                                  HorizontalAlignment="Stretch"
+                                  SelectedIndex="0"
+                                  SelectionChanged="TextStyle_Changed">
+                            <ComboBoxItem x:Name="RedColorItem" x:Uid="ColorRed" Content="Red" Tag="Red" />
+                            <ComboBoxItem x:Name="YellowColorItem" x:Uid="ColorYellow" Content="Yellow" Tag="Yellow" />
+                            <ComboBoxItem x:Name="WhiteColorItem" x:Uid="ColorWhite" Content="White" Tag="White" />
+                            <ComboBoxItem x:Name="BlackColorItem" x:Uid="ColorBlack" Content="Black" Tag="Black" />
+                            <ComboBoxItem x:Name="BlueColorItem" x:Uid="ColorBlue" Content="Blue" Tag="Blue" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel x:Name="TextPropertyGroup"
+                                Spacing="5"
+                                Visibility="Collapsed">
+                        <TextBlock x:Name="FontLabelText" x:Uid="EditorFontLabel" Text="Font" />
+                        <ComboBox x:Name="FontFamilyCombo"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="TextStyle_Changed" />
+                        <TextBlock x:Name="FontSizeLabelText" x:Uid="EditorFontSizeLabel" Margin="0,5,0,0" Text="Size" />
+                        <NumberBox x:Name="FontSizeBox"
+                                   HorizontalAlignment="Stretch"
+                                   Value="28"
+                                   Minimum="6"
+                                   Maximum="300"
+                                   SpinButtonPlacementMode="Compact"
+                                   ValueChanged="FontSizeBox_ValueChanged" />
+                    </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
         </Grid>
 
         <Grid Grid.Row="3" Padding="12,7" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
@@ -183,7 +222,7 @@
                 <Button Click="ZoomOutButton_Click" Content="−" />
                 <TextBlock x:Name="ZoomText" Width="58" VerticalAlignment="Center" TextAlignment="Center" Text="100%" />
                 <Button Click="ZoomInButton_Click" Content="+" />
-                <Button x:Uid="EditorFit" Click="FitButton_Click" Content="Fit" />
+                <Button x:Name="FitButton" x:Uid="EditorFit" Click="FitButton_Click" Content="Fit" />
             </StackPanel>
         </Grid>
     </Grid>

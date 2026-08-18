@@ -12,6 +12,12 @@ namespace BetterCapture.App;
 
 public sealed partial class MainWindow : Window
 {
+    private const double PreferredWidthDip = 640;
+    // The dashboard content is intentionally compact. Extra content such as
+    // capture results remains reachable through MainPage's ScrollViewer.
+    private const double PreferredHeightDip = 380;
+    private const double WorkAreaMarginDip = 24;
+
     private readonly WindowsGraphicsCaptureService _captureService = new();
     private readonly AppSettingsService _settingsService = new();
     private readonly CaptureWorkflow _workflow;
@@ -19,27 +25,31 @@ public sealed partial class MainWindow : Window
     private readonly List<EditorWindow> _editorWindows = [];
     private LibraryWindow? _libraryWindow;
     private GlobalHotkeyService? _hotkeyService;
+    private TrayIconService? _trayIconService;
+    private CaptureHotkey _captureHotkey = HotkeyPreferenceService.Load();
+    private bool _minimizeToTray = TrayPreferenceService.Load();
+    private bool _hotkeyRegistered;
+    private int _hotkeyErrorCode;
+    private bool _isExiting;
     private MainPage? _page;
     private RecordingControlWindow? _recordingControl;
 
     public MainWindow()
     {
         InitializeComponent();
+        AppTitleBar.Title = Localizer.Get("AppTitleBar/Title");
+        AppTitleBar.Subtitle = Localizer.Get("AppTitleBar/Subtitle");
+        WindowAppearanceService.ApplyDarkTitleBar(this);
         _workflow = new CaptureWorkflow(_captureService, _settingsService);
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
-        AppWindow.SetIcon("Assets/AppIcon.ico");
-        ResizeAndCenter();
+        WindowAppearanceService.ApplyAppIcon(this);
         RootFrame.Navigate(typeof(MainPage));
+        RootFrame.Loaded += RootFrame_Loaded;
+        ResizeAndCenter();
 
-        _page = (MainPage)RootFrame.Content;
-        _page.ScreenshotCaptureRequested = CaptureScreenshotAsync;
-        _page.VideoCaptureRequested = CaptureVideoAsync;
-        _page.OpenOutputFolderRequested = _workflow.OpenOutputFolderAsync;
-        _page.ChangeLibraryFolderRequested = ChangeLibraryFolderAsync;
-        _page.OpenLibraryRequested = OpenLibraryAsync;
-        _page.SetOutputFolder(_workflow.OutputRoot);
+        AttachMainPage((MainPage)RootFrame.Content);
 
         Activated += OnActivated;
         Closed += OnClosed;
@@ -47,31 +57,52 @@ public sealed partial class MainWindow : Window
 
     private void ResizeAndCenter()
     {
-        const int width = 560;
-        const int height = 475;
-        AppWindow.Resize(new SizeInt32(width, height));
-
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest);
-        if (area is not null)
-        {
-            var workArea = area.WorkArea;
-            AppWindow.Move(new PointInt32(
-                workArea.X + Math.Max(0, (workArea.Width - width) / 2),
-                workArea.Y + Math.Max(0, (workArea.Height - height) / 2)));
-        }
-    }
-
-    private void OnActivated(object sender, WindowActivatedEventArgs args)
-    {
-        if (_hotkeyService is not null)
+        if (area is null)
         {
             return;
         }
 
-        _hotkeyService = new GlobalHotkeyService(this);
-        _hotkeyService.Pressed += OnPrintScreenPressed;
-        var registered = _hotkeyService.TryRegisterPrintScreen(out var errorCode);
-        _page?.SetHotkeyStatus(registered, errorCode);
+        var scale = Math.Max(1d, RootFrame.XamlRoot?.RasterizationScale ?? 1d);
+        var margin = (int)Math.Ceiling(WorkAreaMarginDip * scale);
+        var workArea = area.WorkArea;
+        var availableWidth = Math.Max(1, workArea.Width - (margin * 2));
+        var availableHeight = Math.Max(1, workArea.Height - (margin * 2));
+        var width = Math.Min(availableWidth, (int)Math.Ceiling(PreferredWidthDip * scale));
+        var height = Math.Min(availableHeight, (int)Math.Ceiling(PreferredHeightDip * scale));
+
+        AppWindow.MoveAndResize(new RectInt32(
+            workArea.X + Math.Max(0, (workArea.Width - width) / 2),
+            workArea.Y + Math.Max(0, (workArea.Height - height) / 2),
+            width,
+            height));
+    }
+
+    private void RootFrame_Loaded(object sender, RoutedEventArgs e)
+    {
+        RootFrame.Loaded -= RootFrame_Loaded;
+        ResizeAndCenter();
+    }
+
+    private void OnActivated(object sender, WindowActivatedEventArgs args)
+    {
+        if (_hotkeyService is null)
+        {
+            _hotkeyService = new GlobalHotkeyService(this);
+            _hotkeyService.Pressed += OnPrintScreenPressed;
+            _hotkeyRegistered = _hotkeyService.TryRegister(_captureHotkey, out _hotkeyErrorCode);
+            _page?.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
+        }
+
+        if (_trayIconService is null)
+        {
+            _trayIconService = new TrayIconService(this);
+            _trayIconService.OpenRequested += OnTrayOpenRequested;
+            _trayIconService.CaptureRequested += OnTrayCaptureRequested;
+            _trayIconService.ExitRequested += OnTrayExitRequested;
+            _trayIconService.Minimized += OnTrayMinimized;
+            _trayIconService.SetEnabled(_minimizeToTray);
+        }
     }
 
     private void OnPrintScreenPressed(object? sender, EventArgs args)
@@ -187,7 +218,21 @@ public sealed partial class MainWindow : Window
     private void ShowDashboard()
     {
         AppWindow.Show();
+        if (AppWindow.Presenter is OverlappedPresenter presenter &&
+            presenter.State == OverlappedPresenterState.Minimized)
+        {
+            presenter.Restore();
+        }
+
         Activate();
+    }
+
+    internal void StartInTray()
+    {
+        if (_minimizeToTray)
+        {
+            AppWindow.Hide();
+        }
     }
 
     private void OpenEditor(string imagePath)
@@ -245,12 +290,179 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private async Task<bool> ChangeStartupSettingAsync(bool enabled)
+    {
+        try
+        {
+            StartupRegistrationService.SetEnabled(enabled);
+        }
+        catch (Exception exception)
+        {
+            if (_page is not null)
+            {
+                await _page.ShowErrorAsync(Localizer.Get("StartupSettingFailedTitle"), exception.Message);
+            }
+        }
+
+        return StartupRegistrationService.IsEnabled;
+    }
+
+    private void AttachMainPage(MainPage page)
+    {
+        _page = page;
+        _page.ScreenshotCaptureRequested = CaptureScreenshotAsync;
+        _page.VideoCaptureRequested = CaptureVideoAsync;
+        _page.OpenOutputFolderRequested = _workflow.OpenOutputFolderAsync;
+        _page.ChangeLibraryFolderRequested = ChangeLibraryFolderAsync;
+        _page.OpenLibraryRequested = OpenLibraryAsync;
+        _page.StartupSettingChanged = ChangeStartupSettingAsync;
+        _page.MinimizeToTraySettingChanged = ChangeMinimizeToTraySettingAsync;
+        _page.LanguageSettingChanged = ChangeLanguageAsync;
+        _page.ChangeHotkeyRequested = ChangeHotkeyAsync;
+        _page.SetOutputFolder(_workflow.OutputRoot);
+        _page.SetStartupEnabled(StartupRegistrationService.IsEnabled);
+        _page.SetMinimizeToTrayEnabled(_minimizeToTray);
+        if (_hotkeyService is not null)
+        {
+            _page.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
+        }
+    }
+
+    private async Task ChangeHotkeyAsync()
+    {
+        if (_page is null || _hotkeyService is null)
+        {
+            return;
+        }
+
+        var selected = await _page.PromptHotkeyAsync(_captureHotkey);
+        if (selected is null || selected.Value == _captureHotkey)
+        {
+            return;
+        }
+
+        var previous = _captureHotkey;
+        if (_hotkeyService.TryRegister(selected.Value, out var errorCode))
+        {
+            _captureHotkey = selected.Value;
+            HotkeyPreferenceService.Save(_captureHotkey);
+            _hotkeyRegistered = true;
+            _hotkeyErrorCode = 0;
+            _page.SetHotkeyStatus(_captureHotkey, registered: true, errorCode: 0);
+            return;
+        }
+
+        _hotkeyRegistered = _hotkeyService.TryRegister(previous, out _hotkeyErrorCode);
+        _page.SetHotkeyStatus(previous, _hotkeyRegistered, _hotkeyErrorCode);
+        await _page.ShowErrorAsync(
+            Localizer.Get("CaptureShortcutFailedTitle"),
+            Localizer.Format(
+                "CaptureShortcutFailedMessage",
+                HotkeyPreferenceService.GetDisplayName(selected.Value),
+                errorCode));
+    }
+
+    private async Task<bool> ChangeMinimizeToTraySettingAsync(bool enabled)
+    {
+        try
+        {
+            TrayPreferenceService.Save(enabled);
+            _minimizeToTray = enabled;
+            _trayIconService?.SetEnabled(enabled);
+        }
+        catch (Exception exception)
+        {
+            if (_page is not null)
+            {
+                await _page.ShowErrorAsync(Localizer.Get("TraySettingFailedTitle"), exception.Message);
+            }
+        }
+
+        return _minimizeToTray;
+    }
+
+    private void OnTrayOpenRequested(object? sender, EventArgs args) => ShowDashboard();
+
+    private void OnTrayCaptureRequested(object? sender, EventArgs args) =>
+        _ = CaptureScreenshotAsync();
+
+    private void OnTrayMinimized(object? sender, EventArgs args)
+    {
+        if (_minimizeToTray && !_isExiting)
+        {
+            AppWindow.Hide();
+        }
+    }
+
+    private void OnTrayExitRequested(object? sender, EventArgs args) => ExitApplication();
+
+    private void ExitApplication()
+    {
+        _isExiting = true;
+        _recordingControl?.Close();
+        _libraryWindow?.Close();
+        foreach (var editor in _editorWindows.ToArray())
+        {
+            editor.Close();
+        }
+
+        Close();
+    }
+
+    private async Task ChangeLanguageAsync(string language)
+    {
+        if (string.Equals(
+                LanguagePreferenceService.CurrentLanguage,
+                language,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        LanguagePreferenceService.Save(language);
+        var canRestart = _editorWindows.Count == 0 &&
+            _recordingControl is null &&
+            _captureGate.CurrentCount > 0;
+        if (_page is null || !await _page.PromptLanguageRestartAsync(canRestart))
+        {
+            return;
+        }
+
+        var executablePath = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(executablePath))
+        {
+            await _page.ShowErrorAsync(
+                Localizer.Get("LanguageRestartTitle"),
+                Localizer.Get("RestartFailedMessage"));
+            return;
+        }
+
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+            executablePath,
+            "--restart")
+        {
+            UseShellExecute = true,
+        });
+        _libraryWindow?.Close();
+        Close();
+    }
+
     private void OnClosed(object sender, WindowEventArgs args)
     {
+        _isExiting = true;
         if (_hotkeyService is not null)
         {
             _hotkeyService.Pressed -= OnPrintScreenPressed;
             _hotkeyService.Dispose();
+        }
+
+        if (_trayIconService is not null)
+        {
+            _trayIconService.OpenRequested -= OnTrayOpenRequested;
+            _trayIconService.CaptureRequested -= OnTrayCaptureRequested;
+            _trayIconService.ExitRequested -= OnTrayExitRequested;
+            _trayIconService.Minimized -= OnTrayMinimized;
+            _trayIconService.Dispose();
         }
 
         _captureService.Dispose();

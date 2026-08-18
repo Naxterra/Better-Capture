@@ -4,6 +4,8 @@ namespace BetterCapture.App.Services;
 
 internal sealed class AppSettingsService
 {
+    private const string LegacySettingsDirectoryName = "Nax" + "Capture";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -17,7 +19,22 @@ internal sealed class AppSettingsService
         var localData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var settingsDirectory = Path.Combine(localData, "BetterCapture");
         _settingsPath = Path.Combine(settingsDirectory, "settings.json");
-        LibraryRoot = LoadLibraryRoot(_settingsPath) ?? CreateDefaultLibraryRoot();
+
+        var libraryRoot = LoadLibraryRoot(_settingsPath);
+        if (libraryRoot is null)
+        {
+            var legacySettingsPath = Path.Combine(
+                localData,
+                LegacySettingsDirectoryName,
+                "settings.json");
+            libraryRoot = LoadLibraryRoot(legacySettingsPath);
+            if (libraryRoot is not null)
+            {
+                TryPersistSettings(libraryRoot);
+            }
+        }
+
+        LibraryRoot = libraryRoot ?? CreateDefaultLibraryRoot();
     }
 
     internal string LibraryRoot { get; private set; }
@@ -74,6 +91,20 @@ internal sealed class AppSettingsService
         }
 
         return Path.Combine(pictures, "BetterCapture");
+    }
+
+    private void TryPersistSettings(string libraryRoot)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
+            var json = JsonSerializer.Serialize(new StoredSettings(libraryRoot), JsonOptions);
+            File.WriteAllText(_settingsPath, json);
+        }
+        catch
+        {
+            // Migration is best-effort; the imported path remains active for this session.
+        }
     }
 
     private sealed record StoredSettings(string LibraryRoot);

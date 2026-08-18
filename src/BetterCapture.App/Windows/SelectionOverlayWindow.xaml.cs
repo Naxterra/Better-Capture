@@ -39,6 +39,8 @@ internal sealed partial class SelectionOverlayWindow : Window
         _target = target;
         _candidates = candidates;
         InitializeComponent();
+        OverlayPrimaryText.Text = Localizer.Get("OverlayPrimary/Text");
+        OverlaySecondaryText.Text = Localizer.Get("OverlaySecondary/Text");
         Title = Localizer.Get("SelectorWindowTitle");
 
         PreviewImage.Source = CreateBitmap(preview.Width, preview.Height, preview.Pixels);

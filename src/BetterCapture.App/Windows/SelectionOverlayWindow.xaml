@@ -80,8 +80,8 @@
                     CornerRadius="8"
                     IsHitTestVisible="False">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock x:Uid="OverlayPrimary" FontWeight="SemiBold" Foreground="White" Text="Click a window or drag a custom area" />
-                    <TextBlock x:Uid="OverlaySecondary" Foreground="#BFFFFFFF" Text="•  right-click or Esc to cancel" />
+                    <TextBlock x:Name="OverlayPrimaryText" x:Uid="OverlayPrimary" FontWeight="SemiBold" Foreground="White" Text="Click a window or drag a custom area" />
+                    <TextBlock x:Name="OverlaySecondaryText" x:Uid="OverlaySecondary" Foreground="#BFFFFFFF" Text="•  right-click or Esc to cancel" />
                 </StackPanel>
             </Border>
 

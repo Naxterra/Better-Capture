@@ -16,6 +16,7 @@ internal sealed partial class LibraryWindow : Window
     private readonly ObservableCollection<LibraryItemViewModel> _visibleItems = [];
     private IReadOnlyList<LibraryItemViewModel> _allItems = [];
     private CancellationTokenSource? _refreshCancellation;
+    private bool _updatingPeriodFilters;
     private string _root;
 
     internal LibraryWindow(string root, Action<string> openEditor)
@@ -23,14 +24,29 @@ internal sealed partial class LibraryWindow : Window
         _root = root;
         _openEditor = openEditor;
         InitializeComponent();
+        ApplyLocalization();
+        WindowAppearanceService.ApplyDarkTitleBar(this);
         Title = Localizer.Get("LibraryWindowTitle");
-        AppWindow.SetIcon("Assets/AppIcon.ico");
+        WindowAppearanceService.ApplyAppIcon(this);
         AppWindow.Resize(new SizeInt32(1120, 760));
         CenterWindow();
         LibraryGrid.ItemsSource = _visibleItems;
         LibraryRootText.Text = _root;
         Closed += OnClosed;
         _ = RefreshAsync();
+    }
+
+    private void ApplyLocalization()
+    {
+        LibraryHeadingText.Text = Localizer.Get("LibraryWindowHeading/Text");
+        SearchBox.PlaceholderText = Localizer.Get("LibrarySearchBox/PlaceholderText");
+        EditSelectedButton.Content = Localizer.Get("LibraryEdit/Content");
+        OpenSelectedButton.Content = Localizer.Get("LibraryOpen/Content");
+        RefreshButton.Content = Localizer.Get("LibraryRefresh/Content");
+        YearLabelText.Text = Localizer.Get("LibraryYearLabel/Text");
+        MonthLabelText.Text = Localizer.Get("LibraryMonthLabel/Text");
+        EmptyTitleText.Text = Localizer.Get("LibraryEmpty/Text");
+        EmptyHintText.Text = Localizer.Get("LibraryEmptyHint/Text");
     }
 
     internal async Task SetRootAndRefreshAsync(string root)
@@ -53,6 +69,7 @@ internal sealed partial class LibraryWindow : Window
         try
         {
             _allItems = await LibraryScanner.ScanAsync(_root, cancellationToken);
+            UpdatePeriodFilters();
             ApplyFilter();
         }
         catch (OperationCanceledException)
@@ -85,13 +102,19 @@ internal sealed partial class LibraryWindow : Window
     private void ApplyFilter()
     {
         var query = SearchBox.Text.Trim();
-        var matches = string.IsNullOrWhiteSpace(query)
-            ? _allItems
-            : _allItems.Where(item =>
+        IReadOnlyList<LibraryItemViewModel> matches =
+            YearFilter.SelectedItem is int year &&
+            MonthFilter.SelectedItem is LibraryMonthOption month
+                ? _allItems.Where(item => item.CaptureYear == year && item.CaptureMonth == month.Number).ToArray()
+                : [];
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            matches = matches.Where(item =>
                 item.Description.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
                 item.SourceApplication.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
                 System.IO.Path.GetFileName(item.Path).Contains(query, StringComparison.CurrentCultureIgnoreCase))
                 .ToArray();
+        }
 
         _visibleItems.Clear();
         foreach (var item in matches)
@@ -101,6 +124,49 @@ internal sealed partial class LibraryWindow : Window
 
         EmptyState.Visibility = _visibleItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         LibraryStatusText.Text = Localizer.Format("LibraryItemCount", _visibleItems.Count);
+    }
+
+    private void UpdatePeriodFilters()
+    {
+        var previousYear = YearFilter.SelectedItem is int year ? year : (int?)null;
+        var previousMonth = (MonthFilter.SelectedItem as LibraryMonthOption)?.Number;
+        var years = _allItems
+            .Select(item => item.CaptureYear)
+            .Distinct()
+            .OrderDescending()
+            .ToArray();
+
+        _updatingPeriodFilters = true;
+        YearFilter.ItemsSource = years;
+        YearFilter.SelectedItem = previousYear is not null && years.Contains(previousYear.Value)
+            ? previousYear.Value
+            : years.FirstOrDefault();
+        PopulateMonthFilter(previousMonth);
+        _updatingPeriodFilters = false;
+    }
+
+    private void PopulateMonthFilter(int? preferredMonth)
+    {
+        if (YearFilter.SelectedItem is not int year)
+        {
+            MonthFilter.ItemsSource = Array.Empty<LibraryMonthOption>();
+            MonthFilter.SelectedItem = null;
+            return;
+        }
+
+        var months = _allItems
+            .Where(item => item.CaptureYear == year)
+            .Select(item => item.CaptureMonth)
+            .Distinct()
+            .OrderDescending()
+            .Select(month => new LibraryMonthOption(
+                month,
+                $"{Localizer.CurrentCulture.DateTimeFormat.GetMonthName(month)} ({month:00})"))
+            .ToArray();
+        MonthFilter.ItemsSource = months;
+        MonthFilter.SelectedItem = preferredMonth is not null
+            ? months.FirstOrDefault(month => month.Number == preferredMonth.Value) ?? months.FirstOrDefault()
+            : months.FirstOrDefault();
     }
 
     private async void LibraryGrid_ContainerContentChanging(
@@ -116,7 +182,7 @@ internal sealed partial class LibraryWindow : Window
     private void LibraryGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var item = LibraryGrid.SelectedItem as LibraryItemViewModel;
-        EditSelectedButton.IsEnabled = item?.Kind == LibraryMediaKind.Image;
+        EditSelectedButton.IsEnabled = item?.CanEdit == true;
         OpenSelectedButton.IsEnabled = item is not null;
     }
 
@@ -130,7 +196,7 @@ internal sealed partial class LibraryWindow : Window
 
     private void EditSelectedButton_Click(object sender, RoutedEventArgs e)
     {
-        if (LibraryGrid.SelectedItem is LibraryItemViewModel { Kind: LibraryMediaKind.Image } item)
+        if (LibraryGrid.SelectedItem is LibraryItemViewModel { CanEdit: true } item)
         {
             _openEditor(item.Path);
         }
@@ -146,7 +212,7 @@ internal sealed partial class LibraryWindow : Window
 
     private async Task OpenItemAsync(LibraryItemViewModel item)
     {
-        if (item.Kind == LibraryMediaKind.Image)
+        if (item.CanEdit)
         {
             _openEditor(item.Path);
             return;
@@ -158,6 +224,27 @@ internal sealed partial class LibraryWindow : Window
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
 
+    private void YearFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingPeriodFilters)
+        {
+            return;
+        }
+
+        _updatingPeriodFilters = true;
+        PopulateMonthFilter(preferredMonth: null);
+        _updatingPeriodFilters = false;
+        ApplyFilter();
+    }
+
+    private void MonthFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_updatingPeriodFilters)
+        {
+            ApplyFilter();
+        }
+    }
+
     private async void RefreshButton_Click(object sender, RoutedEventArgs e) => await RefreshAsync();
 
     private void OnClosed(object sender, WindowEventArgs args)
@@ -165,4 +252,6 @@ internal sealed partial class LibraryWindow : Window
         _refreshCancellation?.Cancel();
         _refreshCancellation?.Dispose();
     }
+
+    private sealed record LibraryMonthOption(int Number, string Display);
 }
