@@ -19,7 +19,7 @@
             <Ellipse Width="13" Height="13" VerticalAlignment="Center" Fill="#FFE43D42" />
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                 <StackPanel Orientation="Horizontal" Spacing="9">
-                    <TextBlock x:Uid="RecordingLabel" FontWeight="SemiBold" Text="Recording" />
+                    <TextBlock x:Name="RecordingLabelText" x:Uid="RecordingLabel" FontWeight="SemiBold" Text="Recording" />
                     <TextBlock x:Name="ElapsedText" FontFamily="Consolas" Text="00:00" />
                 </StackPanel>
                 <TextBlock x:Name="SourceText"

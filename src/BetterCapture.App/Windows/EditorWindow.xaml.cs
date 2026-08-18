@@ -36,6 +36,7 @@ internal sealed partial class EditorWindow : Window
         _openLibrary = openLibrary;
         _document = EditorDocument.Load(imagePath);
         InitializeComponent();
+        ApplyLocalization();
         WindowAppearanceService.ApplyDarkTitleBar(this);
         Title = $"{Localizer.Get("EditorWindowTitle")} — {Path.GetFileName(imagePath)}";
         AppWindow.SetIcon("Assets/AppIcon.ico");
@@ -60,6 +61,67 @@ internal sealed partial class EditorWindow : Window
         UndoMenuItem.IsEnabled = _document.CanUndo;
         RedoMenuItem.IsEnabled = _document.CanRedo;
         SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+    }
+
+    private void ApplyLocalization()
+    {
+        FileMenu.Title = Localizer.Get("EditorMenuFile/Title");
+        OpenMenuItem.Text = Localizer.Get("EditorMenuOpen/Text");
+        SaveMenuItem.Text = Localizer.Get("EditorMenuSave/Text");
+        SaveAsMenuItem.Text = Localizer.Get("EditorMenuSaveAs/Text");
+        OpenLibraryMenuItem.Text = Localizer.Get("EditorMenuLibrary/Text");
+        CloseEditorMenuItem.Text = Localizer.Get("EditorMenuClose/Text");
+        EditMenu.Title = Localizer.Get("EditorMenuEdit/Title");
+        UndoMenuItem.Text = Localizer.Get("EditorMenuUndo/Text");
+        RedoMenuItem.Text = Localizer.Get("EditorMenuRedo/Text");
+        CutMenuItem.Text = Localizer.Get("EditorMenuCut/Text");
+        CopyMenuItem.Text = Localizer.Get("EditorMenuCopy/Text");
+        PasteMenuItem.Text = Localizer.Get("EditorMenuPaste/Text");
+        SelectAllMenuItem.Text = Localizer.Get("EditorMenuSelectAll/Text");
+        DeselectMenuItem.Text = Localizer.Get("EditorMenuDeselect/Text");
+        ImageMenu.Title = Localizer.Get("EditorMenuImage/Title");
+        CropMenuItem.Text = Localizer.Get("EditorMenuCrop/Text");
+        ResizeMenuItem.Text = Localizer.Get("EditorMenuResize/Text");
+        BlurMenuItem.Text = Localizer.Get("EditorMenuBlur/Text");
+        ToolsMenu.Title = Localizer.Get("EditorMenuTools/Title");
+        ToolSelectMenuItem.Text = Localizer.Get("EditorMenuSelect/Text");
+        ToolTextMenuItem.Text = Localizer.Get("EditorMenuText/Text");
+        ToolWatermarkMenuItem.Text = Localizer.Get("EditorMenuWatermark/Text");
+        ShapesMenuItem.Text = Localizer.Get("EditorMenuShapes/Text");
+        ArrowMenuItem.Text = Localizer.Get("EditorMenuArrow/Text");
+        RectangleMenuItem.Text = Localizer.Get("EditorMenuRectangle/Text");
+        EllipseMenuItem.Text = Localizer.Get("EditorMenuEllipse/Text");
+        TriangleMenuItem.Text = Localizer.Get("EditorMenuTriangle/Text");
+        ViewMenu.Title = Localizer.Get("EditorMenuView/Title");
+        ZoomInMenuItem.Text = Localizer.Get("EditorMenuZoomIn/Text");
+        ZoomOutMenuItem.Text = Localizer.Get("EditorMenuZoomOut/Text");
+        ActualSizeMenuItem.Text = Localizer.Get("EditorMenuActualSize/Text");
+        FitMenuItem.Text = Localizer.Get("EditorMenuFit/Text");
+        PropertiesPanelMenuItem.Text = Localizer.Get("EditorMenuProperties/Text");
+        HelpMenu.Title = Localizer.Get("EditorMenuHelp/Title");
+        ShortcutsMenuItem.Text = Localizer.Get("EditorMenuShortcuts/Text");
+        AboutEditorMenuItem.Text = Localizer.Get("EditorMenuAbout/Text");
+
+        SelectButton.Content = Localizer.Get("EditorSelect/Content");
+        CropButton.Content = Localizer.Get("EditorCrop/Content");
+        BlurButton.Content = Localizer.Get("EditorBlur/Content");
+        TextButton.Content = Localizer.Get("EditorText/Content");
+        ArrowButton.Content = Localizer.Get("EditorArrow/Content");
+        RectangleButton.Content = Localizer.Get("EditorRectangle/Content");
+        EllipseButton.Content = Localizer.Get("EditorEllipse/Content");
+        TriangleButton.Content = Localizer.Get("EditorTriangle/Content");
+        WatermarkButton.Content = Localizer.Get("EditorWatermark/Content");
+        PropertiesLabelText.Text = Localizer.Get("EditorPropertiesLabel/Text");
+        NoPropertiesText.Text = Localizer.Get("EditorNoPropertiesHint/Text");
+        ColorLabelText.Text = Localizer.Get("EditorColorLabel/Text");
+        RedColorItem.Content = Localizer.Get("ColorRed/Content");
+        YellowColorItem.Content = Localizer.Get("ColorYellow/Content");
+        WhiteColorItem.Content = Localizer.Get("ColorWhite/Content");
+        BlackColorItem.Content = Localizer.Get("ColorBlack/Content");
+        BlueColorItem.Content = Localizer.Get("ColorBlue/Content");
+        FontLabelText.Text = Localizer.Get("EditorFontLabel/Text");
+        FontSizeLabelText.Text = Localizer.Get("EditorFontSizeLabel/Text");
+        FitButton.Content = Localizer.Get("EditorFit/Content");
     }
 
     private void CenterWindow()
@@ -607,7 +669,7 @@ internal sealed partial class EditorWindow : Window
         {
             XamlRoot = Content.XamlRoot,
             Title = Localizer.Get("EditorAboutTitle"),
-            Content = Localizer.Get("EditorAboutText"),
+            Content = $"{Localizer.Get("EditorAboutText")}\n\n{CreatorIdentity.AboutLine}",
             CloseButtonText = Localizer.Get("Close"),
         };
         await dialog.ShowAsync();

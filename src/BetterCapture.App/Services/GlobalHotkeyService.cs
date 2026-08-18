@@ -8,7 +8,6 @@ internal sealed class GlobalHotkeyService : IDisposable
 {
     private const int HotkeyId = 0x4e41;
     private const uint ModifierNoRepeat = 0x4000;
-    private const uint VirtualKeySnapshot = 0x2c;
     private const uint WindowMessageHotkey = 0x0312;
     private const nuint SubclassId = 0x4e415843;
 
@@ -26,7 +25,7 @@ internal sealed class GlobalHotkeyService : IDisposable
 
     internal event EventHandler? Pressed;
 
-    internal bool TryRegisterPrintScreen(out int errorCode)
+    internal bool TryRegister(CaptureHotkey hotkey, out int errorCode)
     {
         if (!_subclassInstalled)
         {
@@ -34,7 +33,18 @@ internal sealed class GlobalHotkeyService : IDisposable
             return false;
         }
 
-        _registered = RegisterHotKey(_windowHandle, HotkeyId, ModifierNoRepeat, VirtualKeySnapshot);
+        if (_registered)
+        {
+            UnregisterHotKey(_windowHandle, HotkeyId);
+            _registered = false;
+        }
+
+        var registration = HotkeyPreferenceService.GetRegistration(hotkey);
+        _registered = RegisterHotKey(
+            _windowHandle,
+            HotkeyId,
+            registration.Modifiers | ModifierNoRepeat,
+            registration.VirtualKey);
         errorCode = _registered ? 0 : Marshal.GetLastWin32Error();
         return _registered;
     }

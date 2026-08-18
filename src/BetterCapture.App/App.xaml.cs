@@ -38,6 +38,11 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
+        if (args.Arguments.Contains("--restart", StringComparison.OrdinalIgnoreCase))
+        {
+            Thread.Sleep(650);
+        }
+
         _window = new MainWindow();
         _window.Activate();
     }

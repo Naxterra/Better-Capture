@@ -60,6 +60,10 @@ public sealed class LibraryItemViewModel : INotifyPropertyChanged
 
     public string CapturedAtDisplay => CapturedAt.ToLocalTime().ToString("g");
 
+    public int CaptureYear => CapturedAt.ToLocalTime().Year;
+
+    public int CaptureMonth => CapturedAt.ToLocalTime().Month;
+
     public string Details
     {
         get

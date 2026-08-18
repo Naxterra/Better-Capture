@@ -6,6 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="AppTitleBar.Title" xml:space="preserve"><value>BetterCapture</value></data>
   <data name="AppTitleBar.Subtitle" xml:space="preserve"><value>Lokale HDR-Aufnahme</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>Lokale HDR-Aufnahme</value></data>
   <data name="HeroTitle.Text" xml:space="preserve"><value>Aufnehmen, ohne mit der App zu kämpfen</value></data>
   <data name="HeroSubtitle.Text" xml:space="preserve"><value>FP16-HDR-Aufnahme, sinnvolle Vorgaben und normale lokale Dateien. Kein Konto und keine Cloud-Abhängigkeit.</value></data>
   <data name="SmartCaptureTitle.Text" xml:space="preserve"><value>Intelligente Aufnahme</value></data>
@@ -18,22 +19,41 @@
   <data name="HdrMasterValue.Text" xml:space="preserve"><value>OpenEXR · lineares scRGB</value></data>
   <data name="CompatibilityLabel.Text" xml:space="preserve"><value>Kompatibilität</value></data>
   <data name="CompatibilityValue.Text" xml:space="preserve"><value>Tonwertgemapptes sRGB-PNG + Zwischenablage</value></data>
-  <data name="CursorToggle.Header" xml:space="preserve"><value>Mauszeiger einbeziehen</value></data>
-  <data name="StartupToggle.Header" xml:space="preserve"><value>Mit Windows starten</value></data>
+  <data name="CursorLabel.Text" xml:space="preserve"><value>Mauszeiger einbeziehen</value></data>
+  <data name="StartupLabel.Text" xml:space="preserve"><value>Mit Windows starten</value></data>
   <data name="StartupSettingFailedTitle" xml:space="preserve"><value>Autostart-Einstellung konnte nicht geändert werden</value></data>
+  <data name="Language" xml:space="preserve"><value>Sprache</value></data>
+  <data name="Settings" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="StartupMenuItem" xml:space="preserve"><value>Mit Windows starten</value></data>
+  <data name="StorageLocationLabel" xml:space="preserve"><value>Speicherort</value></data>
+  <data name="CaptureShortcutMenu" xml:space="preserve"><value>Aufnahme-Tastenkürzel: {0}</value></data>
+  <data name="CaptureShortcutUnavailable" xml:space="preserve"><value>Aufnahme-Tastenkürzel: {0} (nicht verfügbar · Win32 {1})</value></data>
+  <data name="CaptureShortcutTitle" xml:space="preserve"><value>Aufnahme-Tastenkürzel</value></data>
+  <data name="CaptureShortcutLabel" xml:space="preserve"><value>Tastenkombination</value></data>
+  <data name="CaptureShortcutFailedTitle" xml:space="preserve"><value>Tastenkürzel konnte nicht registriert werden</value></data>
+  <data name="CaptureShortcutFailedMessage" xml:space="preserve"><value>{0} ist bereits von Windows oder einer anderen Anwendung reserviert (Win32 {1}). Das vorherige Tastenkürzel bleibt aktiv.</value></data>
+  <data name="PrintScreenKeyName" xml:space="preserve"><value>Druck</value></data>
+  <data name="ControlKeyName" xml:space="preserve"><value>Strg</value></data>
+  <data name="ShiftKeyName" xml:space="preserve"><value>Umschalt</value></data>
+  <data name="LanguageRestartTitle" xml:space="preserve"><value>BetterCapture neu starten?</value></data>
+  <data name="LanguageRestartMessage" xml:space="preserve"><value>Die gewählte Sprache wurde gespeichert. Starte BetterCapture jetzt neu, um sie überall anzuwenden.</value></data>
+  <data name="LanguageRestartDeferredMessage" xml:space="preserve"><value>Die gewählte Sprache wurde gespeichert. Schließe und öffne BetterCapture nach Abschluss der offenen Editor-Arbeit erneut.</value></data>
+  <data name="RestartNow" xml:space="preserve"><value>Jetzt neu starten</value></data>
+  <data name="Later" xml:space="preserve"><value>Später</value></data>
+  <data name="RestartFailedMessage" xml:space="preserve"><value>BetterCapture konnte nicht automatisch neu gestartet werden. Schließe und öffne die App erneut, um die Sprache anzuwenden.</value></data>
   <data name="LocalOutputTitle.Text" xml:space="preserve"><value>Lokale Bibliothek</value></data>
   <data name="OpenFolderText.Text" xml:space="preserve"><value>Ordner öffnen</value></data>
   <data name="ChangeFolderText.Text" xml:space="preserve"><value>Speicherort ändern</value></data>
   <data name="LibraryDescription.Text" xml:space="preserve"><value>Dateien werden nach Jahr und Monat geordnet. Metadaten speichern Quell-App und Fenster; der Index besitzt nie die einzige Kopie.</value></data>
+  <data name="LibraryTitle.Text" xml:space="preserve"><value>Bibliothek</value></data>
+  <data name="LibraryHint.Text" xml:space="preserve"><value>Aufnahmen nach Jahr und Monat durchsuchen</value></data>
   <data name="HotkeyInfo.Title" xml:space="preserve"><value>Druck-Taste</value></data>
   <data name="HotkeyInfo.Message" xml:space="preserve"><value>Globale Tastenkombination wird registriert…</value></data>
-  <data name="StatusText.Text" xml:space="preserve"><value>Bereit</value></data>
   <data name="OverlayPrimary.Text" xml:space="preserve"><value>Fenster anklicken oder eigenen Bereich aufziehen</value></data>
   <data name="OverlaySecondary.Text" xml:space="preserve"><value>•  Rechtsklick oder Esc zum Abbrechen</value></data>
   <data name="PreparingSmartCapture" xml:space="preserve"><value>Intelligente Aufnahme wird vorbereitet…</value></data>
   <data name="CaptureFailedTitle" xml:space="preserve"><value>Aufnahme fehlgeschlagen</value></data>
   <data name="UseThisFolder" xml:space="preserve"><value>Diesen Ordner verwenden</value></data>
-  <data name="Ready" xml:space="preserve"><value>Bereit</value></data>
   <data name="PrintScreenReadyTitle" xml:space="preserve"><value>Druck-Taste ist bereit</value></data>
   <data name="PrintScreenReadyMessage" xml:space="preserve"><value>Drücke die Druck-Taste, um die intelligente Aufnahme zu starten.</value></data>
   <data name="PrintScreenReservedTitle" xml:space="preserve"><value>Druck-Taste ist von Windows reserviert</value></data>
@@ -103,6 +123,8 @@
   <data name="LibraryWindowTitle" xml:space="preserve"><value>BetterCapture-Bibliothek</value></data>
   <data name="LibraryWindowHeading.Text" xml:space="preserve"><value>Bibliothek</value></data>
   <data name="LibrarySearchBox.PlaceholderText" xml:space="preserve"><value>App, Fenster oder Dateiname suchen</value></data>
+  <data name="LibraryYearLabel.Text" xml:space="preserve"><value>Jahr</value></data>
+  <data name="LibraryMonthLabel.Text" xml:space="preserve"><value>Monat</value></data>
   <data name="LibraryEdit.Content" xml:space="preserve"><value>Bearbeiten</value></data>
   <data name="LibraryOpen.Content" xml:space="preserve"><value>Öffnen</value></data>
   <data name="LibraryRefresh.Content" xml:space="preserve"><value>Aktualisieren</value></data>
@@ -155,4 +177,8 @@
   <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Strg+S  Speichern&#x0A;Strg+Umschalt+S  Speichern unter&#x0A;Strg+Z / Strg+Y  Rückgängig / Wiederholen&#x0A;Strg+X / Strg+C / Strg+V  Ausschneiden / Kopieren / Einfügen&#x0A;Strg+A  Alles auswählen&#x0A;Strg+0  Originalgröße&#x0A;Strg+Enter  Inline-Text abschließen&#x0A;Escape  Inline-Text abbrechen</value></data>
   <data name="EditorAboutTitle" xml:space="preserve"><value>Info zu BetterCapture-Editor</value></data>
   <data name="EditorAboutText" xml:space="preserve"><value>BetterCapture bietet lokale Offline-Bildbearbeitung mit editierbaren Anmerkungen und ohne Cloud-Abhängigkeit.</value></data>
+  <data name="About" xml:space="preserve"><value>Info zu BetterCapture</value></data>
+  <data name="AppAboutTitle" xml:space="preserve"><value>BetterCapture {0}</value></data>
+  <data name="AppAboutText" xml:space="preserve"><value>Eine lokal arbeitende Windows-Aufnahme-App für korrekte HDR-Wiedergabe, stabile Aufzeichnung und Offline-Bearbeitung.</value></data>
+  <data name="CreatorAboutLine" xml:space="preserve"><value>Erstellt und im Besitz von Naxterra · github@shades.dev</value></data>
 </root>
