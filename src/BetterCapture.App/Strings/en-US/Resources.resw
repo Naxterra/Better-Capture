@@ -6,6 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
   <data name="AppTitleBar.Title" xml:space="preserve"><value>BetterCapture</value></data>
   <data name="AppTitleBar.Subtitle" xml:space="preserve"><value>Local HDR capture</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>Local HDR capture</value></data>
   <data name="HeroTitle.Text" xml:space="preserve"><value>Capture without fighting the app</value></data>
   <data name="HeroSubtitle.Text" xml:space="preserve"><value>FP16 HDR capture, useful defaults, ordinary local files. No account and no cloud dependency.</value></data>
   <data name="SmartCaptureTitle.Text" xml:space="preserve"><value>Smart capture</value></data>
@@ -18,22 +19,41 @@
   <data name="HdrMasterValue.Text" xml:space="preserve"><value>OpenEXR · linear scRGB</value></data>
   <data name="CompatibilityLabel.Text" xml:space="preserve"><value>Compatibility</value></data>
   <data name="CompatibilityValue.Text" xml:space="preserve"><value>Tone-mapped sRGB PNG + clipboard</value></data>
-  <data name="CursorToggle.Header" xml:space="preserve"><value>Include mouse pointer</value></data>
-  <data name="StartupToggle.Header" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="CursorLabel.Text" xml:space="preserve"><value>Include mouse pointer</value></data>
+  <data name="StartupLabel.Text" xml:space="preserve"><value>Start with Windows</value></data>
   <data name="StartupSettingFailedTitle" xml:space="preserve"><value>Startup setting could not be changed</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="StartupMenuItem" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="StorageLocationLabel" xml:space="preserve"><value>Save captures to</value></data>
+  <data name="CaptureShortcutMenu" xml:space="preserve"><value>Capture shortcut: {0}</value></data>
+  <data name="CaptureShortcutUnavailable" xml:space="preserve"><value>Capture shortcut: {0} (unavailable · Win32 {1})</value></data>
+  <data name="CaptureShortcutTitle" xml:space="preserve"><value>Capture shortcut</value></data>
+  <data name="CaptureShortcutLabel" xml:space="preserve"><value>Keyboard shortcut</value></data>
+  <data name="CaptureShortcutFailedTitle" xml:space="preserve"><value>Shortcut could not be registered</value></data>
+  <data name="CaptureShortcutFailedMessage" xml:space="preserve"><value>{0} is already reserved by Windows or another application (Win32 {1}). The previous shortcut remains active.</value></data>
+  <data name="PrintScreenKeyName" xml:space="preserve"><value>Print Screen</value></data>
+  <data name="ControlKeyName" xml:space="preserve"><value>Ctrl</value></data>
+  <data name="ShiftKeyName" xml:space="preserve"><value>Shift</value></data>
+  <data name="LanguageRestartTitle" xml:space="preserve"><value>Restart BetterCapture?</value></data>
+  <data name="LanguageRestartMessage" xml:space="preserve"><value>The selected language is saved. Restart BetterCapture now to apply it everywhere.</value></data>
+  <data name="LanguageRestartDeferredMessage" xml:space="preserve"><value>The selected language is saved. Close and reopen BetterCapture after finishing the open editor work.</value></data>
+  <data name="RestartNow" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Later" xml:space="preserve"><value>Later</value></data>
+  <data name="RestartFailedMessage" xml:space="preserve"><value>BetterCapture could not restart automatically. Close and reopen it to apply the language.</value></data>
   <data name="LocalOutputTitle.Text" xml:space="preserve"><value>Local library</value></data>
   <data name="OpenFolderText.Text" xml:space="preserve"><value>Open folder</value></data>
   <data name="ChangeFolderText.Text" xml:space="preserve"><value>Change location</value></data>
   <data name="LibraryDescription.Text" xml:space="preserve"><value>Files are organized by year and month. Metadata records the source app and window; the index never owns the only copy.</value></data>
+  <data name="LibraryTitle.Text" xml:space="preserve"><value>Library</value></data>
+  <data name="LibraryHint.Text" xml:space="preserve"><value>Browse captures by year and month</value></data>
   <data name="HotkeyInfo.Title" xml:space="preserve"><value>Print Screen</value></data>
   <data name="HotkeyInfo.Message" xml:space="preserve"><value>Registering the global shortcut…</value></data>
-  <data name="StatusText.Text" xml:space="preserve"><value>Ready</value></data>
   <data name="OverlayPrimary.Text" xml:space="preserve"><value>Click a window or drag a custom area</value></data>
   <data name="OverlaySecondary.Text" xml:space="preserve"><value>•  right-click or Esc to cancel</value></data>
   <data name="PreparingSmartCapture" xml:space="preserve"><value>Preparing smart capture…</value></data>
   <data name="CaptureFailedTitle" xml:space="preserve"><value>Capture failed</value></data>
   <data name="UseThisFolder" xml:space="preserve"><value>Use this folder</value></data>
-  <data name="Ready" xml:space="preserve"><value>Ready</value></data>
   <data name="PrintScreenReadyTitle" xml:space="preserve"><value>Print Screen is ready</value></data>
   <data name="PrintScreenReadyMessage" xml:space="preserve"><value>Press Print Screen anywhere to start smart capture.</value></data>
   <data name="PrintScreenReservedTitle" xml:space="preserve"><value>Print Screen is reserved by Windows</value></data>
@@ -103,6 +123,8 @@
   <data name="LibraryWindowTitle" xml:space="preserve"><value>BetterCapture Library</value></data>
   <data name="LibraryWindowHeading.Text" xml:space="preserve"><value>Library</value></data>
   <data name="LibrarySearchBox.PlaceholderText" xml:space="preserve"><value>Search app, window, or filename</value></data>
+  <data name="LibraryYearLabel.Text" xml:space="preserve"><value>Year</value></data>
+  <data name="LibraryMonthLabel.Text" xml:space="preserve"><value>Month</value></data>
   <data name="LibraryEdit.Content" xml:space="preserve"><value>Edit</value></data>
   <data name="LibraryOpen.Content" xml:space="preserve"><value>Open</value></data>
   <data name="LibraryRefresh.Content" xml:space="preserve"><value>Refresh</value></data>
@@ -155,4 +177,8 @@
   <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Ctrl+S  Save&#x0A;Ctrl+Shift+S  Save as&#x0A;Ctrl+Z / Ctrl+Y  Undo / Redo&#x0A;Ctrl+X / Ctrl+C / Ctrl+V  Cut / Copy / Paste&#x0A;Ctrl+A  Select all&#x0A;Ctrl+0  Actual size&#x0A;Ctrl+Enter  Finish inline text&#x0A;Escape  Cancel inline text</value></data>
   <data name="EditorAboutTitle" xml:space="preserve"><value>About BetterCapture Editor</value></data>
   <data name="EditorAboutText" xml:space="preserve"><value>BetterCapture provides local, offline screenshot editing with editable annotations and no cloud dependency.</value></data>
+  <data name="About" xml:space="preserve"><value>About BetterCapture</value></data>
+  <data name="AppAboutTitle" xml:space="preserve"><value>BetterCapture {0}</value></data>
+  <data name="AppAboutText" xml:space="preserve"><value>A local-first Windows capture app built for HDR correctness, stable recording, and offline editing.</value></data>
+  <data name="CreatorAboutLine" xml:space="preserve"><value>Created and owned by Naxterra · github@shades.dev</value></data>
 </root>

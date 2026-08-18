@@ -22,6 +22,8 @@ internal sealed partial class RecordingControlWindow : Window
     {
         _session = session;
         InitializeComponent();
+        RecordingLabelText.Text = Localizer.Get("RecordingLabel/Text");
+        StopButton.Content = Localizer.Get("StopButton/Content");
         Title = Localizer.Get("RecordingWindowTitle");
         SourceText.Text = sourceDescription;
         ConfigureWindow(target);

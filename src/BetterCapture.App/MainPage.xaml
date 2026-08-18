@@ -16,6 +16,9 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Image Width="38"
                            Height="38"
@@ -23,8 +26,8 @@
                            Source="Assets/BetterCaptureLogo-1024.png"
                            Stretch="Uniform" />
                     <StackPanel Grid.Column="1" Spacing="2">
-                        <TextBlock x:Uid="CompactPrompt" FontSize="20" FontWeight="SemiBold" Text="Choose capture type" />
-                        <TextBlock x:Uid="CompactHint"
+                        <TextBlock x:Name="CompactPromptText" x:Uid="CompactPrompt" FontSize="20" FontWeight="SemiBold" Text="Choose capture type" />
+                        <TextBlock x:Name="CompactHintText" x:Uid="CompactHint"
                                    FontSize="12"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    Text="The same smart selector handles windows, full screen, and custom areas." />
@@ -35,10 +38,53 @@
                             CornerRadius="14">
                         <TextBlock FontSize="12" FontWeight="SemiBold" Text="FP16 scRGB" />
                     </Border>
+                    <Button x:Name="LanguageButton"
+                            Grid.Column="3"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Language">
+                        <FontIcon FontSize="15" Glyph="&#xE774;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <ToggleMenuFlyoutItem x:Name="EnglishLanguageMenuItem"
+                                                      Text="English"
+                                                      Tag="en-US"
+                                                      Click="LanguageMenuItem_Click" />
+                                <ToggleMenuFlyoutItem x:Name="GermanLanguageMenuItem"
+                                                      Text="Deutsch"
+                                                      Tag="de-DE"
+                                                      Click="LanguageMenuItem_Click" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                    <Button x:Name="SettingsButton"
+                            Grid.Column="4"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Settings">
+                        <FontIcon FontSize="15" Glyph="&#xE713;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <ToggleMenuFlyoutItem x:Name="StartupMenuItem"
+                                                      Text="Start with Windows"
+                                                      Click="StartupMenuItem_Click" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem x:Name="ShortcutMenuItem"
+                                                Text="Capture shortcut: Print Screen"
+                                                Click="ShortcutMenuItem_Click" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                    <Button x:Name="AboutButton"
+                            Grid.Column="5"
+                            VerticalAlignment="Center"
+                            Click="AboutButton_Click"
+                            AutomationProperties.Name="About BetterCapture">
+                        <FontIcon FontSize="15" Glyph="&#xE946;" />
+                    </Button>
                 </Grid>
 
                 <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
@@ -49,8 +95,8 @@
                             Style="{StaticResource AccentButtonStyle}">
                         <StackPanel Padding="8" Spacing="6">
                             <FontIcon HorizontalAlignment="Left" FontSize="23" Glyph="&#xE7C9;" />
-                            <TextBlock x:Uid="ScreenshotTitle" FontSize="17" FontWeight="SemiBold" Text="Screenshot" />
-                            <TextBlock x:Uid="ScreenshotHint" Opacity="0.8" Text="Click a window or drag an area" TextWrapping="Wrap" />
+                            <TextBlock x:Name="ScreenshotTitleText" x:Uid="ScreenshotTitle" FontSize="17" FontWeight="SemiBold" Text="Screenshot" />
+                            <TextBlock x:Name="ScreenshotHintText" x:Uid="ScreenshotHint" Opacity="0.8" Text="Click a window or drag an area" TextWrapping="Wrap" />
                         </StackPanel>
                     </Button>
                     <Button x:Name="VideoButton"
@@ -60,10 +106,24 @@
                             Click="VideoButton_Click">
                         <StackPanel Padding="8" Spacing="6">
                             <FontIcon HorizontalAlignment="Left" FontSize="23" Glyph="&#xE714;" />
-                            <TextBlock x:Uid="VideoTitle" FontSize="17" FontWeight="SemiBold" Text="Video" />
-                            <TextBlock x:Uid="VideoHint"
+                            <TextBlock x:Name="VideoTitleText" x:Uid="VideoTitle" FontSize="17" FontWeight="SemiBold" Text="Video" />
+                            <TextBlock x:Name="VideoHintText" x:Uid="VideoHint"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        Text="Record the selected window or area"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="LibraryButton"
+                            Grid.Column="2"
+                            MinHeight="104"
+                            HorizontalContentAlignment="Stretch"
+                            Click="LibraryButton_Click">
+                        <StackPanel Padding="8" Spacing="6">
+                            <FontIcon HorizontalAlignment="Left" FontSize="23" Glyph="&#xE8B9;" />
+                            <TextBlock x:Name="LibraryTitleText" x:Uid="LibraryTitle" FontSize="17" FontWeight="SemiBold" Text="Library" />
+                            <TextBlock x:Name="LibraryHintText" x:Uid="LibraryHint"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Browse captures by year and month"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                     </Button>
@@ -74,70 +134,58 @@
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
                         CornerRadius="9">
-                    <Grid ColumnSpacing="10" RowSpacing="8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.RowSpan="2" Spacing="7">
-                            <ToggleSwitch x:Name="CursorToggle" x:Uid="CursorToggle" Header="Include pointer" IsOn="True" />
-                            <ToggleSwitch x:Name="StartupToggle"
-                                          x:Uid="StartupToggle"
-                                          Header="Start with Windows"
-                                          Toggled="StartupToggle_Toggled" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center" Spacing="1">
-                            <TextBlock x:Uid="LibraryLabel" FontSize="12" FontWeight="SemiBold" Text="Library" />
-                            <TextBlock x:Name="OutputFolderText"
-                                       MaxWidth="230"
-                                       FontSize="11"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="2" Grid.RowSpan="2" VerticalAlignment="Center" Orientation="Horizontal" Spacing="5">
-                            <Button x:Name="OpenFolderButton"
-                                    x:Uid="OpenFolderButton"
-                                    Click="OpenFolderButton_Click"
-                                    ToolTipService.ToolTip="Open folder">
-                                <FontIcon FontSize="14" Glyph="&#xE8B7;" />
-                            </Button>
-                            <Button x:Name="ChangeFolderButton"
-                                    x:Uid="ChangeFolderButton"
-                                    Click="ChangeFolderButton_Click"
-                                    ToolTipService.ToolTip="Change location">
-                                <FontIcon FontSize="14" Glyph="&#xE713;" />
-                            </Button>
-                            <Button x:Name="LibraryButton"
-                                    Click="LibraryButton_Click"
-                                    ToolTipService.ToolTip="Open library">
-                                <FontIcon FontSize="14" Glyph="&#xE8B9;" />
-                            </Button>
-                        </StackPanel>
+                        <TextBlock x:Name="CursorLabelText" x:Uid="CursorLabel"
+                                   VerticalAlignment="Center"
+                                   Text="Include pointer" />
+                        <ToggleSwitch x:Name="CursorToggle"
+                                      Grid.Column="1"
+                                      VerticalAlignment="Center"
+                                      IsOn="True" />
+                        <Button x:Name="ChangeFolderButton"
+                                Grid.Column="2"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                Click="ChangeFolderButton_Click"
+                                Style="{StaticResource SubtleButtonStyle}">
+                            <Grid ColumnSpacing="9">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon VerticalAlignment="Center" FontSize="17" Glyph="&#xE8B7;" />
+                                <StackPanel Grid.Column="1" Spacing="1">
+                                    <TextBlock x:Name="StorageLocationLabelText"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Text="Save captures to" />
+                                    <TextBlock x:Name="OutputFolderText"
+                                               MaxWidth="260"
+                                               FontSize="11"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <FontIcon Grid.Column="2" VerticalAlignment="Center" FontSize="12" Glyph="&#xE76C;" />
+                            </Grid>
+                        </Button>
+                        <Button x:Name="OpenFolderButton"
+                                Grid.Column="3"
+                                VerticalAlignment="Center"
+                                Click="OpenFolderButton_Click"
+                                ToolTipService.ToolTip="Open folder">
+                            <FontIcon FontSize="14" Glyph="&#xE838;" />
+                        </Button>
                     </Grid>
                 </Border>
 
-                <InfoBar x:Name="HotkeyInfo" x:Uid="HotkeyInfo"
-                         IsClosable="False" IsOpen="True" Severity="Informational"
-                         Title="Print Screen" Message="Registering shortcut…" />
                 <InfoBar x:Name="CaptureInfo" IsClosable="True" IsOpen="False" Severity="Success" />
-
-                <Border Padding="12,9" Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <ProgressRing x:Name="BusyRing" Width="18" Height="18" IsActive="False" />
-                        <TextBlock x:Name="StatusText" x:Uid="StatusText"
-                                   Grid.Column="1" Margin="10,0,0,0"
-                                   VerticalAlignment="Center" Text="Ready" />
-                    </Grid>
-                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

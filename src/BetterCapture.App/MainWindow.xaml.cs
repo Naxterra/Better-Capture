@@ -13,7 +13,7 @@ namespace BetterCapture.App;
 public sealed partial class MainWindow : Window
 {
     private const double PreferredWidthDip = 640;
-    private const double PreferredHeightDip = 600;
+    private const double PreferredHeightDip = 550;
     private const double WorkAreaMarginDip = 24;
 
     private readonly WindowsGraphicsCaptureService _captureService = new();
@@ -23,12 +23,17 @@ public sealed partial class MainWindow : Window
     private readonly List<EditorWindow> _editorWindows = [];
     private LibraryWindow? _libraryWindow;
     private GlobalHotkeyService? _hotkeyService;
+    private CaptureHotkey _captureHotkey = HotkeyPreferenceService.Load();
+    private bool _hotkeyRegistered;
+    private int _hotkeyErrorCode;
     private MainPage? _page;
     private RecordingControlWindow? _recordingControl;
 
     public MainWindow()
     {
         InitializeComponent();
+        AppTitleBar.Title = Localizer.Get("AppTitleBar/Title");
+        AppTitleBar.Subtitle = Localizer.Get("AppTitleBar/Subtitle");
         WindowAppearanceService.ApplyDarkTitleBar(this);
         _workflow = new CaptureWorkflow(_captureService, _settingsService);
 
@@ -39,15 +44,7 @@ public sealed partial class MainWindow : Window
         RootFrame.Loaded += RootFrame_Loaded;
         ResizeAndCenter();
 
-        _page = (MainPage)RootFrame.Content;
-        _page.ScreenshotCaptureRequested = CaptureScreenshotAsync;
-        _page.VideoCaptureRequested = CaptureVideoAsync;
-        _page.OpenOutputFolderRequested = _workflow.OpenOutputFolderAsync;
-        _page.ChangeLibraryFolderRequested = ChangeLibraryFolderAsync;
-        _page.OpenLibraryRequested = OpenLibraryAsync;
-        _page.StartupSettingChanged = ChangeStartupSettingAsync;
-        _page.SetOutputFolder(_workflow.OutputRoot);
-        _page.SetStartupEnabled(StartupRegistrationService.IsEnabled);
+        AttachMainPage((MainPage)RootFrame.Content);
 
         Activated += OnActivated;
         Closed += OnClosed;
@@ -91,8 +88,8 @@ public sealed partial class MainWindow : Window
 
         _hotkeyService = new GlobalHotkeyService(this);
         _hotkeyService.Pressed += OnPrintScreenPressed;
-        var registered = _hotkeyService.TryRegisterPrintScreen(out var errorCode);
-        _page?.SetHotkeyStatus(registered, errorCode);
+        _hotkeyRegistered = _hotkeyService.TryRegister(_captureHotkey, out _hotkeyErrorCode);
+        _page?.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
     }
 
     private void OnPrintScreenPressed(object? sender, EventArgs args)
@@ -281,6 +278,97 @@ public sealed partial class MainWindow : Window
         }
 
         return StartupRegistrationService.IsEnabled;
+    }
+
+    private void AttachMainPage(MainPage page)
+    {
+        _page = page;
+        _page.ScreenshotCaptureRequested = CaptureScreenshotAsync;
+        _page.VideoCaptureRequested = CaptureVideoAsync;
+        _page.OpenOutputFolderRequested = _workflow.OpenOutputFolderAsync;
+        _page.ChangeLibraryFolderRequested = ChangeLibraryFolderAsync;
+        _page.OpenLibraryRequested = OpenLibraryAsync;
+        _page.StartupSettingChanged = ChangeStartupSettingAsync;
+        _page.LanguageSettingChanged = ChangeLanguageAsync;
+        _page.ChangeHotkeyRequested = ChangeHotkeyAsync;
+        _page.SetOutputFolder(_workflow.OutputRoot);
+        _page.SetStartupEnabled(StartupRegistrationService.IsEnabled);
+        if (_hotkeyService is not null)
+        {
+            _page.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
+        }
+    }
+
+    private async Task ChangeHotkeyAsync()
+    {
+        if (_page is null || _hotkeyService is null)
+        {
+            return;
+        }
+
+        var selected = await _page.PromptHotkeyAsync(_captureHotkey);
+        if (selected is null || selected.Value == _captureHotkey)
+        {
+            return;
+        }
+
+        var previous = _captureHotkey;
+        if (_hotkeyService.TryRegister(selected.Value, out var errorCode))
+        {
+            _captureHotkey = selected.Value;
+            HotkeyPreferenceService.Save(_captureHotkey);
+            _hotkeyRegistered = true;
+            _hotkeyErrorCode = 0;
+            _page.SetHotkeyStatus(_captureHotkey, registered: true, errorCode: 0);
+            return;
+        }
+
+        _hotkeyRegistered = _hotkeyService.TryRegister(previous, out _hotkeyErrorCode);
+        _page.SetHotkeyStatus(previous, _hotkeyRegistered, _hotkeyErrorCode);
+        await _page.ShowErrorAsync(
+            Localizer.Get("CaptureShortcutFailedTitle"),
+            Localizer.Format(
+                "CaptureShortcutFailedMessage",
+                HotkeyPreferenceService.GetDisplayName(selected.Value),
+                errorCode));
+    }
+
+    private async Task ChangeLanguageAsync(string language)
+    {
+        if (string.Equals(
+                LanguagePreferenceService.CurrentLanguage,
+                language,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        LanguagePreferenceService.Save(language);
+        var canRestart = _editorWindows.Count == 0 &&
+            _recordingControl is null &&
+            _captureGate.CurrentCount > 0;
+        if (_page is null || !await _page.PromptLanguageRestartAsync(canRestart))
+        {
+            return;
+        }
+
+        var executablePath = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(executablePath))
+        {
+            await _page.ShowErrorAsync(
+                Localizer.Get("LanguageRestartTitle"),
+                Localizer.Get("RestartFailedMessage"));
+            return;
+        }
+
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+            executablePath,
+            "--restart")
+        {
+            UseShellExecute = true,
+        });
+        _libraryWindow?.Close();
+        Close();
     }
 
     private void OnClosed(object sender, WindowEventArgs args)
