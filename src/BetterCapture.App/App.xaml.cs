@@ -45,5 +45,9 @@ public partial class App : Application
 
         _window = new MainWindow();
         _window.Activate();
+        if (args.Arguments.Contains("--background", StringComparison.OrdinalIgnoreCase))
+        {
+            _window.StartInTray();
+        }
     }
 }

@@ -27,7 +27,7 @@ internal sealed partial class LibraryWindow : Window
         ApplyLocalization();
         WindowAppearanceService.ApplyDarkTitleBar(this);
         Title = Localizer.Get("LibraryWindowTitle");
-        AppWindow.SetIcon("Assets/AppIcon.ico");
+        WindowAppearanceService.ApplyAppIcon(this);
         AppWindow.Resize(new SizeInt32(1120, 760));
         CenterWindow();
         LibraryGrid.ItemsSource = _visibleItems;

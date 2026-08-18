@@ -66,6 +66,9 @@
                                 <ToggleMenuFlyoutItem x:Name="StartupMenuItem"
                                                       Text="Start with Windows"
                                                       Click="StartupMenuItem_Click" />
+                                <ToggleMenuFlyoutItem x:Name="MinimizeToTrayMenuItem"
+                                                      Text="Minimize to notification area"
+                                                      Click="MinimizeToTrayMenuItem_Click" />
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem x:Name="ShortcutMenuItem"
                                                 Text="Capture shortcut: Print Screen"

@@ -7,8 +7,10 @@
     <AssemblyName>BetterCapture</AssemblyName>
     <AssemblyTitle>BetterCapture</AssemblyTitle>
     <Product>BetterCapture</Product>
+    <Version>1.0.1</Version>
     <DefaultLanguage>en-US</DefaultLanguage>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

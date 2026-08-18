@@ -8,6 +8,7 @@ namespace BetterCapture.App;
 public sealed partial class MainPage : Page
 {
     private bool _settingStartupToggle;
+    private bool _settingTrayToggle;
 
     public MainPage()
     {
@@ -37,6 +38,8 @@ public sealed partial class MainPage : Page
 
     internal Func<bool, Task<bool>>? StartupSettingChanged { get; set; }
 
+    internal Func<bool, Task<bool>>? MinimizeToTraySettingChanged { get; set; }
+
     internal Func<string, Task>? LanguageSettingChanged { get; set; }
 
     internal Func<Task>? ChangeHotkeyRequested { get; set; }
@@ -58,6 +61,7 @@ public sealed partial class MainPage : Page
         CursorLabelText.Text = Localizer.Get("CursorLabel/Text");
         StorageLocationLabelText.Text = Localizer.Get("StorageLocationLabel");
         StartupMenuItem.Text = Localizer.Get("StartupMenuItem");
+        MinimizeToTrayMenuItem.Text = Localizer.Get("MinimizeToTrayMenuItem");
     }
 
     internal void SetStartupEnabled(bool enabled)
@@ -65,6 +69,13 @@ public sealed partial class MainPage : Page
         _settingStartupToggle = true;
         StartupMenuItem.IsChecked = enabled;
         _settingStartupToggle = false;
+    }
+
+    internal void SetMinimizeToTrayEnabled(bool enabled)
+    {
+        _settingTrayToggle = true;
+        MinimizeToTrayMenuItem.IsChecked = enabled;
+        _settingTrayToggle = false;
     }
 
     internal void SetBusy(string message)
@@ -201,6 +212,25 @@ public sealed partial class MainPage : Page
         if (ChangeHotkeyRequested is not null)
         {
             await ChangeHotkeyRequested();
+        }
+    }
+
+    private async void MinimizeToTrayMenuItem_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        if (_settingTrayToggle || MinimizeToTraySettingChanged is null)
+        {
+            return;
+        }
+
+        MinimizeToTrayMenuItem.IsEnabled = false;
+        try
+        {
+            SetMinimizeToTrayEnabled(
+                await MinimizeToTraySettingChanged(MinimizeToTrayMenuItem.IsChecked));
+        }
+        finally
+        {
+            MinimizeToTrayMenuItem.IsEnabled = true;
         }
     }
 

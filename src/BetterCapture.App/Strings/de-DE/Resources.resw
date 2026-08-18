@@ -25,6 +25,11 @@
   <data name="Language" xml:space="preserve"><value>Sprache</value></data>
   <data name="Settings" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="StartupMenuItem" xml:space="preserve"><value>Mit Windows starten</value></data>
+  <data name="MinimizeToTrayMenuItem" xml:space="preserve"><value>In den Infobereich minimieren</value></data>
+  <data name="TraySettingFailedTitle" xml:space="preserve"><value>Infobereich-Einstellung konnte nicht geändert werden</value></data>
+  <data name="TrayOpen" xml:space="preserve"><value>BetterCapture öffnen</value></data>
+  <data name="TrayCapture" xml:space="preserve"><value>Screenshot aufnehmen</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>BetterCapture beenden</value></data>
   <data name="StorageLocationLabel" xml:space="preserve"><value>Speicherort</value></data>
   <data name="CaptureShortcutMenu" xml:space="preserve"><value>Aufnahme-Tastenkürzel: {0}</value></data>
   <data name="CaptureShortcutUnavailable" xml:space="preserve"><value>Aufnahme-Tastenkürzel: {0} (nicht verfügbar · Win32 {1})</value></data>

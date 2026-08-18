@@ -13,7 +13,9 @@ namespace BetterCapture.App;
 public sealed partial class MainWindow : Window
 {
     private const double PreferredWidthDip = 640;
-    private const double PreferredHeightDip = 550;
+    // The dashboard content is intentionally compact. Extra content such as
+    // capture results remains reachable through MainPage's ScrollViewer.
+    private const double PreferredHeightDip = 380;
     private const double WorkAreaMarginDip = 24;
 
     private readonly WindowsGraphicsCaptureService _captureService = new();
@@ -23,9 +25,12 @@ public sealed partial class MainWindow : Window
     private readonly List<EditorWindow> _editorWindows = [];
     private LibraryWindow? _libraryWindow;
     private GlobalHotkeyService? _hotkeyService;
+    private TrayIconService? _trayIconService;
     private CaptureHotkey _captureHotkey = HotkeyPreferenceService.Load();
+    private bool _minimizeToTray = TrayPreferenceService.Load();
     private bool _hotkeyRegistered;
     private int _hotkeyErrorCode;
+    private bool _isExiting;
     private MainPage? _page;
     private RecordingControlWindow? _recordingControl;
 
@@ -39,7 +44,7 @@ public sealed partial class MainWindow : Window
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
-        AppWindow.SetIcon("Assets/AppIcon.ico");
+        WindowAppearanceService.ApplyAppIcon(this);
         RootFrame.Navigate(typeof(MainPage));
         RootFrame.Loaded += RootFrame_Loaded;
         ResizeAndCenter();
@@ -81,15 +86,23 @@ public sealed partial class MainWindow : Window
 
     private void OnActivated(object sender, WindowActivatedEventArgs args)
     {
-        if (_hotkeyService is not null)
+        if (_hotkeyService is null)
         {
-            return;
+            _hotkeyService = new GlobalHotkeyService(this);
+            _hotkeyService.Pressed += OnPrintScreenPressed;
+            _hotkeyRegistered = _hotkeyService.TryRegister(_captureHotkey, out _hotkeyErrorCode);
+            _page?.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
         }
 
-        _hotkeyService = new GlobalHotkeyService(this);
-        _hotkeyService.Pressed += OnPrintScreenPressed;
-        _hotkeyRegistered = _hotkeyService.TryRegister(_captureHotkey, out _hotkeyErrorCode);
-        _page?.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
+        if (_trayIconService is null)
+        {
+            _trayIconService = new TrayIconService(this);
+            _trayIconService.OpenRequested += OnTrayOpenRequested;
+            _trayIconService.CaptureRequested += OnTrayCaptureRequested;
+            _trayIconService.ExitRequested += OnTrayExitRequested;
+            _trayIconService.Minimized += OnTrayMinimized;
+            _trayIconService.SetEnabled(_minimizeToTray);
+        }
     }
 
     private void OnPrintScreenPressed(object? sender, EventArgs args)
@@ -205,7 +218,21 @@ public sealed partial class MainWindow : Window
     private void ShowDashboard()
     {
         AppWindow.Show();
+        if (AppWindow.Presenter is OverlappedPresenter presenter &&
+            presenter.State == OverlappedPresenterState.Minimized)
+        {
+            presenter.Restore();
+        }
+
         Activate();
+    }
+
+    internal void StartInTray()
+    {
+        if (_minimizeToTray)
+        {
+            AppWindow.Hide();
+        }
     }
 
     private void OpenEditor(string imagePath)
@@ -289,10 +316,12 @@ public sealed partial class MainWindow : Window
         _page.ChangeLibraryFolderRequested = ChangeLibraryFolderAsync;
         _page.OpenLibraryRequested = OpenLibraryAsync;
         _page.StartupSettingChanged = ChangeStartupSettingAsync;
+        _page.MinimizeToTraySettingChanged = ChangeMinimizeToTraySettingAsync;
         _page.LanguageSettingChanged = ChangeLanguageAsync;
         _page.ChangeHotkeyRequested = ChangeHotkeyAsync;
         _page.SetOutputFolder(_workflow.OutputRoot);
         _page.SetStartupEnabled(StartupRegistrationService.IsEnabled);
+        _page.SetMinimizeToTrayEnabled(_minimizeToTray);
         if (_hotkeyService is not null)
         {
             _page.SetHotkeyStatus(_captureHotkey, _hotkeyRegistered, _hotkeyErrorCode);
@@ -331,6 +360,53 @@ public sealed partial class MainWindow : Window
                 "CaptureShortcutFailedMessage",
                 HotkeyPreferenceService.GetDisplayName(selected.Value),
                 errorCode));
+    }
+
+    private async Task<bool> ChangeMinimizeToTraySettingAsync(bool enabled)
+    {
+        try
+        {
+            TrayPreferenceService.Save(enabled);
+            _minimizeToTray = enabled;
+            _trayIconService?.SetEnabled(enabled);
+        }
+        catch (Exception exception)
+        {
+            if (_page is not null)
+            {
+                await _page.ShowErrorAsync(Localizer.Get("TraySettingFailedTitle"), exception.Message);
+            }
+        }
+
+        return _minimizeToTray;
+    }
+
+    private void OnTrayOpenRequested(object? sender, EventArgs args) => ShowDashboard();
+
+    private void OnTrayCaptureRequested(object? sender, EventArgs args) =>
+        _ = CaptureScreenshotAsync();
+
+    private void OnTrayMinimized(object? sender, EventArgs args)
+    {
+        if (_minimizeToTray && !_isExiting)
+        {
+            AppWindow.Hide();
+        }
+    }
+
+    private void OnTrayExitRequested(object? sender, EventArgs args) => ExitApplication();
+
+    private void ExitApplication()
+    {
+        _isExiting = true;
+        _recordingControl?.Close();
+        _libraryWindow?.Close();
+        foreach (var editor in _editorWindows.ToArray())
+        {
+            editor.Close();
+        }
+
+        Close();
     }
 
     private async Task ChangeLanguageAsync(string language)
@@ -373,10 +449,20 @@ public sealed partial class MainWindow : Window
 
     private void OnClosed(object sender, WindowEventArgs args)
     {
+        _isExiting = true;
         if (_hotkeyService is not null)
         {
             _hotkeyService.Pressed -= OnPrintScreenPressed;
             _hotkeyService.Dispose();
+        }
+
+        if (_trayIconService is not null)
+        {
+            _trayIconService.OpenRequested -= OnTrayOpenRequested;
+            _trayIconService.CaptureRequested -= OnTrayCaptureRequested;
+            _trayIconService.ExitRequested -= OnTrayExitRequested;
+            _trayIconService.Minimized -= OnTrayMinimized;
+            _trayIconService.Dispose();
         }
 
         _captureService.Dispose();
