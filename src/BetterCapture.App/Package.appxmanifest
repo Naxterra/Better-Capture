@@ -12,7 +12,7 @@
   <Identity
     Name="BetterCapture"
     Publisher="CN=Naxterra"
-    Version="1.0.0.0" />
+    Version="1.0.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="7F13B252-8BC7-4634-834F-7FAA91AC2971" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

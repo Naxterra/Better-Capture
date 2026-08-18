@@ -4,6 +4,22 @@ namespace BetterCapture.App.Library;
 
 internal static class LibraryScanner
 {
+    private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".avif", ".bmp", ".dng", ".exr", ".gif", ".heic", ".heif", ".jfif",
+        ".jpg", ".jpeg", ".jxl", ".png", ".tif", ".tiff", ".webp",
+    };
+
+    private static readonly HashSet<string> EditableImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".bmp", ".gif", ".jfif", ".jpg", ".jpeg", ".png", ".webp",
+    };
+
+    private static readonly HashSet<string> VideoExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".webm", ".wmv",
+    };
+
     internal static Task<IReadOnlyList<LibraryItemViewModel>> ScanAsync(
         string root,
         CancellationToken cancellationToken = default) => Task.Run(
@@ -18,16 +34,23 @@ internal static class LibraryScanner
         }
 
         var items = new List<LibraryItemViewModel>();
-        foreach (var path in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
+        var enumerationOptions = new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            IgnoreInaccessible = true,
+            ReturnSpecialDirectories = false,
+        };
+        foreach (var path in Directory.EnumerateFiles(root, "*", enumerationOptions))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var extension = System.IO.Path.GetExtension(path);
-            var kind = extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+            var kind = ImageExtensions.Contains(extension)
                 ? LibraryMediaKind.Image
-                : extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase)
+                : VideoExtensions.Contains(extension)
                     ? LibraryMediaKind.Video
                     : (LibraryMediaKind?)null;
-            if (kind is null || path.EndsWith(".partial.mp4", StringComparison.OrdinalIgnoreCase))
+            if (kind is null || System.IO.Path.GetFileNameWithoutExtension(path)
+                    .EndsWith(".partial", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
@@ -52,7 +75,8 @@ internal static class LibraryScanner
                 metadata.Width,
                 metadata.Height,
                 metadata.Duration,
-                file.Length));
+                file.Length,
+                EditableImageExtensions.Contains(extension)));
         }
 
         return items
