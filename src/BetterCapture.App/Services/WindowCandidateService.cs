@@ -12,6 +12,7 @@ internal static class WindowCandidateService
     private const int DwmCloaked = 14;
     private const int ExtendedStyleIndex = -20;
     private const long ExtendedStyleToolWindow = 0x00000080L;
+    private const uint WindowDisplayAffinityNone = 0;
     private static readonly HashSet<string> IgnoredWindowClasses = new(StringComparer.OrdinalIgnoreCase)
     {
         "Progman",
@@ -114,7 +115,13 @@ internal static class WindowCandidateService
             ? CaptureSelectionKind.Window
             : CaptureSelectionKind.Window;
         var source = new CaptureSourceInfo(kind, applicationName, title, clipped);
-        candidates.Add(new CaptureCandidate(window, localRegion, source, IsZoomed(window), coversMonitor));
+        candidates.Add(new CaptureCandidate(
+            window,
+            localRegion,
+            source,
+            IsZoomed(window),
+            coversMonitor,
+            IsCaptureProtected(window)));
     }
 
     private static bool TryGetWindowBounds(nint window, out PixelRect bounds)
@@ -147,6 +154,9 @@ internal static class WindowCandidateService
     {
         return DwmGetWindowAttribute(window, DwmCloaked, out int cloaked, sizeof(int)) == 0 && cloaked != 0;
     }
+
+    private static bool IsCaptureProtected(nint window) =>
+        GetWindowDisplayAffinity(window, out var affinity) && affinity != WindowDisplayAffinityNone;
 
     private static string GetWindowTitle(nint window)
     {
@@ -189,7 +199,8 @@ internal static class WindowCandidateService
         PixelRect Region,
         CaptureSourceInfo Source,
         bool IsMaximized,
-        bool CoversMonitor);
+        bool CoversMonitor,
+        bool IsCaptureProtected);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct NativeRect
@@ -220,6 +231,10 @@ internal static class WindowCandidateService
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(nint window, out uint processId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetWindowDisplayAffinity(nint window, out uint affinity);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowTextLengthW", CharSet = CharSet.Unicode)]
     private static extern int GetWindowTextLength(nint window);

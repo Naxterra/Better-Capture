@@ -6,6 +6,8 @@ using BetterCapture.Capture;
 using BetterCapture.Core.Capture;
 using BetterCapture.Core.Geometry;
 using BetterCapture.Core.Video;
+using BetterCapture.Graphics.Color;
+using BetterCapture.Graphics.Images;
 using Windows.Graphics;
 
 namespace BetterCapture.App;
@@ -180,15 +182,9 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                var saved = await _workflow.SaveAsync(prepared, selection, saveHdrMaster: true);
-                await ClipboardService.CopyPngAsync(saved.PngPath);
-                if (_libraryWindow is not null)
-                {
-                    await _libraryWindow.RefreshAsync();
-                }
-                ShowDashboard();
-                _page?.ShowCapture(saved);
-                OpenEditor(saved.PngPath);
+                var saved = await TryCaptureScrollingSelectionAsync(prepared, selection) ??
+                    await _workflow.SaveAsync(prepared, selection, saveHdrMaster: true);
+                await HandleSavedCaptureAsync(saved);
             }
         }
         catch (Exception exception)
@@ -213,6 +209,76 @@ public sealed partial class MainWindow : Window
     {
         Screenshot,
         Video,
+    }
+
+    private async Task<CaptureSaveResult?> TryCaptureScrollingSelectionAsync(
+        PreparedCapture prepared,
+        SmartCaptureSelection selection)
+    {
+        const int maximumFrames = 40;
+        const int maximumHeight = 30_000;
+        if (selection.WindowHandle == 0 || selection.Source.Kind != CaptureSelectionKind.Window)
+        {
+            return null;
+        }
+
+        var toneMapSettings = new ToneMapSettings
+        {
+            SdrWhiteLevelNits = prepared.SdrWhiteLevelNits,
+        };
+        var firstFrame = prepared.Frame.Crop(selection.Region);
+        var firstPreview = await Task.Run(() => ScRgbToneMapper.ToBgra8(firstFrame, settings: toneMapSettings));
+        var stitcher = new ScrollingFrameStitcher(firstFrame, firstPreview);
+
+        for (var frameIndex = 1; frameIndex < maximumFrames && stitcher.Height < maximumHeight; frameIndex++)
+        {
+            if (!WindowScrollService.TryScrollDown(selection.WindowHandle, selection.Source.DesktopBounds))
+            {
+                break;
+            }
+
+            await Task.Delay(550);
+            var nextPrepared = await _workflow.PrepareAsync(
+                prepared.Target,
+                new CaptureOptions
+                {
+                    IncludeCursor = _page?.IncludeCursor ?? true,
+                    RequestBorderlessCapture = true,
+                });
+            var nextFrame = nextPrepared.Frame.Crop(selection.Region);
+            var nextPreview = await Task.Run(() => ScRgbToneMapper.ToBgra8(nextFrame, settings: toneMapSettings));
+            if (!stitcher.TryAppend(nextFrame, nextPreview, maximumHeight, out _))
+            {
+                break;
+            }
+        }
+
+        if (stitcher.FrameCount == 1)
+        {
+            return null;
+        }
+
+        var stitchedFrame = await Task.Run(stitcher.Build);
+        var scrollingSource = selection.Source with { Kind = CaptureSelectionKind.Scrolling };
+        return await _workflow.SaveFrameAsync(
+            stitchedFrame,
+            scrollingSource,
+            selection.Source.DesktopBounds,
+            prepared.SdrWhiteLevelNits,
+            saveHdrMaster: true);
+    }
+
+    private async Task HandleSavedCaptureAsync(CaptureSaveResult saved)
+    {
+        await ClipboardService.CopyPngAsync(saved.PngPath);
+        if (_libraryWindow is not null)
+        {
+            await _libraryWindow.RefreshAsync();
+        }
+
+        ShowDashboard();
+        _page?.ShowCapture(saved);
+        OpenEditor(saved.PngPath);
     }
 
     private void ShowDashboard()

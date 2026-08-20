@@ -2,6 +2,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using BetterCapture.Core.Capture;
 using BetterCapture.Core.Geometry;
@@ -26,6 +27,11 @@ internal sealed partial class SelectionOverlayWindow : Window
     private readonly TaskCompletionSource<SmartCaptureSelection?> _selectionSource = new(
         TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly WriteableBitmap _loupeBitmap = new(LoupeSampleSize, LoupeSampleSize);
+    private readonly Brush _normalSelectionStroke = new SolidColorBrush(Microsoft.UI.Colors.White);
+    private readonly Brush _protectedSelectionStroke = new SolidColorBrush(
+        Microsoft.UI.ColorHelper.FromArgb(255, 255, 200, 61));
+    private readonly string _defaultPrimaryText;
+    private readonly string _defaultSecondaryText;
     private WinPoint? _dragStart;
     private CaptureCandidate? _pressedCandidate;
     private bool _isDragging;
@@ -39,8 +45,9 @@ internal sealed partial class SelectionOverlayWindow : Window
         _target = target;
         _candidates = candidates;
         InitializeComponent();
-        OverlayPrimaryText.Text = Localizer.Get("OverlayPrimary/Text");
-        OverlaySecondaryText.Text = Localizer.Get("OverlaySecondary/Text");
+        _defaultPrimaryText = Localizer.Get("OverlayPrimary/Text");
+        _defaultSecondaryText = Localizer.Get("OverlaySecondary/Text");
+        ShowDefaultInstruction();
         Title = Localizer.Get("SelectorWindowTitle");
 
         PreviewImage.Source = CreateBitmap(preview.Width, preview.Height, preview.Pixels);
@@ -82,7 +89,7 @@ internal sealed partial class SelectionOverlayWindow : Window
 
     private void OnCanvasSizeChanged(object sender, SizeChangedEventArgs args)
     {
-        CanvasPosition(InstructionBar, Math.Max(12, (args.NewSize.Width - InstructionBar.ActualWidth) / 2), 18);
+        PositionInstructionBar();
         ShowPixelRegion(
             new PixelRect(0, 0, _preview.Width, _preview.Height),
             _target.DeviceName);
@@ -156,14 +163,31 @@ internal sealed partial class SelectionOverlayWindow : Window
                 return;
             }
 
+            var protectedCandidate = WindowCandidateService.FindBestOverlap(_candidates, region);
+            if (protectedCandidate?.IsCaptureProtected == true)
+            {
+                ResetPointerState();
+                ShowProtectedCandidate(protectedCandidate);
+                args.Handled = true;
+                return;
+            }
+
             selection = new SmartCaptureSelection(region, CreateSourceForRegion(region));
         }
         else
         {
             var candidate = _pressedCandidate ?? FindCandidate(end);
+            if (candidate?.IsCaptureProtected == true)
+            {
+                ResetPointerState();
+                ShowProtectedCandidate(candidate);
+                args.Handled = true;
+                return;
+            }
+
             selection = candidate is null
                 ? CreateFullScreenSelection()
-                : new SmartCaptureSelection(candidate.Region, candidate.Source);
+                : new SmartCaptureSelection(candidate.Region, candidate.Source, candidate.WindowHandle);
         }
 
         ResetPointerState();
@@ -203,12 +227,20 @@ internal sealed partial class SelectionOverlayWindow : Window
         var candidate = FindCandidate(position);
         if (candidate is null)
         {
+            ShowDefaultInstruction();
             ShowPixelRegion(
                 new PixelRect(0, 0, _preview.Width, _preview.Height),
                 _target.DeviceName);
             return;
         }
 
+        if (candidate.IsCaptureProtected)
+        {
+            ShowProtectedCandidate(candidate);
+            return;
+        }
+
+        ShowDefaultInstruction();
         ShowPixelRegion(candidate.Region, candidate.Source.Description);
     }
 
@@ -284,7 +316,7 @@ internal sealed partial class SelectionOverlayWindow : Window
             Math.Clamp(badgeY, 8, Math.Max(8, InteractionCanvas.ActualHeight - DimensionBadge.DesiredSize.Height - 8)));
     }
 
-    private void ShowPixelRegion(PixelRect region, string label)
+    private void ShowPixelRegion(PixelRect region, string label, bool isCaptureProtected = false)
     {
         if (InteractionCanvas.ActualWidth <= 0 || InteractionCanvas.ActualHeight <= 0)
         {
@@ -299,6 +331,9 @@ internal sealed partial class SelectionOverlayWindow : Window
             region.Width * scaleX,
             region.Height * scaleY);
         SelectionRectangle.Visibility = Visibility.Visible;
+        SelectionRectangle.Stroke = isCaptureProtected
+            ? _protectedSelectionStroke
+            : _normalSelectionStroke;
         DimensionBadge.Visibility = Visibility.Visible;
         CanvasPosition(SelectionRectangle, selection.X, selection.Y);
         SelectionRectangle.Width = selection.Width;
@@ -314,6 +349,42 @@ internal sealed partial class SelectionOverlayWindow : Window
             DimensionBadge,
             Math.Clamp(selection.X, 8, Math.Max(8, InteractionCanvas.ActualWidth - DimensionBadge.DesiredSize.Width - 8)),
             Math.Clamp(badgeY, 8, Math.Max(8, InteractionCanvas.ActualHeight - DimensionBadge.DesiredSize.Height - 8)));
+    }
+
+    private void ShowProtectedCandidate(CaptureCandidate candidate)
+    {
+        OverlayPrimaryText.Text = Localizer.Get("ProtectedWindowTitle");
+        OverlaySecondaryText.Text = Localizer.Format(
+            "ProtectedWindowMessage",
+            candidate.Source.ApplicationName);
+        InstructionBar.Visibility = Visibility.Visible;
+        PositionInstructionBar();
+        ShowPixelRegion(
+            candidate.Region,
+            Localizer.Format("ProtectedWindowBadge", candidate.Source.Description),
+            isCaptureProtected: true);
+    }
+
+    private void ShowDefaultInstruction()
+    {
+        OverlayPrimaryText.Text = _defaultPrimaryText;
+        OverlaySecondaryText.Text = _defaultSecondaryText;
+        InstructionBar.Visibility = Visibility.Visible;
+        PositionInstructionBar();
+    }
+
+    private void PositionInstructionBar()
+    {
+        if (InteractionCanvas.ActualWidth <= 0)
+        {
+            return;
+        }
+
+        InstructionBar.Measure(new WinSize(double.PositiveInfinity, double.PositiveInfinity));
+        CanvasPosition(
+            InstructionBar,
+            Math.Max(12, (InteractionCanvas.ActualWidth - InstructionBar.DesiredSize.Width) / 2),
+            18);
     }
 
     private void UpdateShade(WinRect? selection)

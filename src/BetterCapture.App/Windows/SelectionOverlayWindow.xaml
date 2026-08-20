@@ -75,13 +75,14 @@
             </Border>
 
             <Border x:Name="InstructionBar"
+                    MaxWidth="760"
                     Padding="14,9"
                     Background="#E61C1C1C"
                     CornerRadius="8"
                     IsHitTestVisible="False">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock x:Name="OverlayPrimaryText" x:Uid="OverlayPrimary" FontWeight="SemiBold" Foreground="White" Text="Click a window or drag a custom area" />
-                    <TextBlock x:Name="OverlaySecondaryText" x:Uid="OverlaySecondary" Foreground="#BFFFFFFF" Text="•  right-click or Esc to cancel" />
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="OverlayPrimaryText" x:Uid="OverlayPrimary" FontWeight="SemiBold" Foreground="White" Text="Click a window or drag a custom area" TextWrapping="Wrap" />
+                    <TextBlock x:Name="OverlaySecondaryText" x:Uid="OverlaySecondary" Foreground="#BFFFFFFF" Text="Right-click or Esc to cancel" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
