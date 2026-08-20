@@ -128,8 +128,10 @@ public sealed partial class MainWindow : Window
 
     private async Task RunSmartCaptureAsync(CaptureOperation operation)
     {
+        CaptureTrace.Write($"capture requested · operation {operation} · gate {_captureGate.CurrentCount}");
         if (!await _captureGate.WaitAsync(0))
         {
+            CaptureTrace.Write("capture ignored · gate already held");
             return;
         }
 
@@ -142,6 +144,7 @@ public sealed partial class MainWindow : Window
                     : "PreparingSmartCapture"));
             var target = _captureService.GetDisplayUnderCursor();
             var candidates = WindowCandidateService.GetCandidates(target);
+            CaptureTrace.Write($"display selected · {target.DeviceName} · {target.DesktopBounds} · candidates {candidates.Count}");
             AppWindow.Hide();
             await Task.Delay(140);
 
@@ -157,8 +160,13 @@ public sealed partial class MainWindow : Window
             var selection = await overlay.SelectAsync();
             if (selection is null)
             {
+                CaptureTrace.Write("selector cancelled");
                 return;
             }
+
+            CaptureTrace.Write(
+                $"selector completed · kind {selection.Source.Kind} · app {selection.Source.ApplicationName} · " +
+                $"region {selection.Region} · hwnd 0x{selection.WindowHandle:X}");
 
             if (operation == CaptureOperation.Video)
             {
@@ -182,13 +190,15 @@ public sealed partial class MainWindow : Window
             }
             else
             {
-                var saved = await TryCaptureScrollingSelectionAsync(prepared, selection) ??
-                    await _workflow.SaveAsync(prepared, selection, saveHdrMaster: true);
+                var saved = selection.Source.Kind == CaptureSelectionKind.Scrolling
+                    ? await CaptureScrollingSelectionAsync(prepared, selection)
+                    : await _workflow.SaveAsync(prepared, selection, saveHdrMaster: true);
                 await HandleSavedCaptureAsync(saved);
             }
         }
         catch (Exception exception)
         {
+            CaptureTrace.Write($"capture failed · {exception.GetType().Name} · {exception.Message}");
             ShowDashboard();
             if (_page is not null)
             {
@@ -197,6 +207,7 @@ public sealed partial class MainWindow : Window
         }
         finally
         {
+            CaptureTrace.Write("capture workflow finished");
             overlay?.Close();
             _recordingControl = null;
             ShowDashboard();
@@ -211,55 +222,98 @@ public sealed partial class MainWindow : Window
         Video,
     }
 
-    private async Task<CaptureSaveResult?> TryCaptureScrollingSelectionAsync(
+    private async Task<CaptureSaveResult> CaptureScrollingSelectionAsync(
         PreparedCapture prepared,
         SmartCaptureSelection selection)
     {
-        const int maximumFrames = 40;
+        const int maximumFrames = 160;
         const int maximumHeight = 30_000;
-        if (selection.WindowHandle == 0 || selection.Source.Kind != CaptureSelectionKind.Window)
+        if (selection.WindowHandle == 0 || selection.Source.Kind != CaptureSelectionKind.Scrolling)
         {
-            return null;
+            throw new InvalidOperationException(Localizer.Get("ScrollingCaptureUnavailable"));
         }
 
         var toneMapSettings = new ToneMapSettings
         {
             SdrWhiteLevelNits = prepared.SdrWhiteLevelNits,
         };
-        var firstFrame = prepared.Frame.Crop(selection.Region);
+        using var parkedCursor = CursorParkingScope.ParkAboveCaptureViewport(selection.Source.DesktopBounds);
+        await Task.Delay(350);
+        if (!WindowScrollService.TryScrollToStart(
+                selection.WindowHandle,
+                selection.Source.DesktopBounds,
+                out var resetDetails))
+        {
+            CaptureTrace.Write($"scroll capture could not reset to start · {resetDetails}");
+            throw new InvalidOperationException(Localizer.Get("ScrollingCaptureResetFailed"));
+        }
+        CaptureTrace.Write(resetDetails);
+
+        await using var continuousCapture = _captureService.StartContinuousCapture(
+            prepared.Target,
+            selection.Region,
+            includeCursor: false);
+        var firstFrame = await continuousCapture.ReadLatestAsync();
         var firstPreview = await Task.Run(() => ScRgbToneMapper.ToBgra8(firstFrame, settings: toneMapSettings));
         var stitcher = new ScrollingFrameStitcher(firstFrame, firstPreview);
-
+        CaptureTrace.Write($"scroll probe started · frame {firstFrame.Width}x{firstFrame.Height}");
         for (var frameIndex = 1; frameIndex < maximumFrames && stitcher.Height < maximumHeight; frameIndex++)
         {
-            if (!WindowScrollService.TryScrollDown(selection.WindowHandle, selection.Source.DesktopBounds))
+            continuousCapture.DiscardPendingFrames();
+            if (!WindowScrollService.TryScrollDown(
+                    selection.WindowHandle,
+                    selection.Source.DesktopBounds,
+                    out var expectedAdvance,
+                    out var reachedEnd,
+                    out var scrollDetails))
             {
+                CaptureTrace.Write($"scroll stopped · {scrollDetails}");
+                break;
+            }
+            CaptureTrace.Write(scrollDetails);
+            if (expectedAdvance == 0 && reachedEnd)
+            {
+                CaptureTrace.Write($"scroll stopped · UI Automation reached the end · frames {stitcher.FrameCount}");
                 break;
             }
 
-            await Task.Delay(550);
-            var nextPrepared = await _workflow.PrepareAsync(
-                prepared.Target,
-                new CaptureOptions
-                {
-                    IncludeCursor = _page?.IncludeCursor ?? true,
-                    RequestBorderlessCapture = true,
-                });
-            var nextFrame = nextPrepared.Frame.Crop(selection.Region);
-            var nextPreview = await Task.Run(() => ScRgbToneMapper.ToBgra8(nextFrame, settings: toneMapSettings));
-            if (!stitcher.TryAppend(nextFrame, nextPreview, maximumHeight, out _))
+            var appended = false;
+            var advance = 0;
+            for (var settleAttempt = 0; settleAttempt < 10 && !appended; settleAttempt++)
             {
+                await Task.Delay(settleAttempt == 0 ? 180 : 160);
+                var nextFrame = await continuousCapture.ReadLatestAsync();
+                var nextPreview = await Task.Run(() => ScRgbToneMapper.ToBgra8(nextFrame, settings: toneMapSettings));
+                appended = stitcher.TryAppend(
+                    nextFrame,
+                    nextPreview,
+                    maximumHeight,
+                    out advance,
+                    bottomTrim: 0,
+                    allowFallback: false);
+            }
+
+            if (!appended)
+            {
+                CaptureTrace.Write(
+                    $"scroll stopped · no movement or reliable image overlap after settling · " +
+                    $"UIA expected {expectedAdvance}px · " +
+                    $"frames {stitcher.FrameCount}");
                 break;
             }
+            CaptureTrace.Write(
+                $"frame appended · measured advance {advance}px · UIA expected {expectedAdvance}px · " +
+                $"height {stitcher.Height}");
         }
 
         if (stitcher.FrameCount == 1)
         {
-            return null;
+            throw new InvalidOperationException(Localizer.Get("ScrollingCaptureNoMovement"));
         }
 
         var stitchedFrame = await Task.Run(stitcher.Build);
         var scrollingSource = selection.Source with { Kind = CaptureSelectionKind.Scrolling };
+        CaptureTrace.Write($"scroll capture completed · frames {stitcher.FrameCount} · size {stitcher.Width}x{stitcher.Height}");
         return await _workflow.SaveFrameAsync(
             stitchedFrame,
             scrollingSource,

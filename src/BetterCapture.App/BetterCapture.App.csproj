@@ -61,6 +61,7 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Interop.UIAutomationClient" />
     <PackageReference Include="SkiaSharp.Views.WinUI" />
   </ItemGroup>
 

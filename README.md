@@ -19,6 +19,10 @@ The first milestone has one acceptance test:
 - WinUI 3 desktop shell
 - `Windows.Graphics.Capture` with an FP16/scRGB D3D11 frame pool
 - Smart window, maximized/full-screen, desktop, and custom-region selection
+- Contextual scrolling capture for UI Automation-aware windows, with a visible
+  document-viewport outline and pixel-overlap stitching
+- Screen-capture protection detection with a localized explanation for apps
+  such as Signal
 - Local OpenEXR HDR master plus tone-mapped PNG
 - SDR PNG clipboard copy
 - H.264 MP4 recording of any smart-selected window or region
@@ -37,8 +41,8 @@ The first milestone has one acceptance test:
 - English and German UI localization following the Windows display language
 - No account, cloud service, telemetry, or network runtime dependency
 
-SQLite tags/favorites, scrolling capture, and audio recording remain planned
-modules. They intentionally do not share state with the capture engine. See
+SQLite tags/favorites and audio recording remain planned modules. They
+intentionally do not share state with the capture engine. See
 [`docs/architecture.md`](docs/architecture.md).
 
 ## Build

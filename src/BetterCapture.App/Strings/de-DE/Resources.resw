@@ -55,7 +55,8 @@
   <data name="HotkeyInfo.Title" xml:space="preserve"><value>Druck-Taste</value></data>
   <data name="HotkeyInfo.Message" xml:space="preserve"><value>Globale Tastenkombination wird registriert…</value></data>
   <data name="OverlayPrimary.Text" xml:space="preserve"><value>Fenster anklicken oder eigenen Bereich aufziehen</value></data>
-  <data name="OverlaySecondary.Text" xml:space="preserve"><value>•  Rechtsklick oder Esc zum Abbrechen</value></data>
+  <data name="OverlaySecondary.Text" xml:space="preserve"><value>Oranger Pfeil: Scrollaufnahme · Rechtsklick oder Esc zum Abbrechen</value></data>
+  <data name="ScrollingCaptureArrow" xml:space="preserve"><value>Scrollenden Inhalt aufnehmen</value></data>
   <data name="ProtectedWindowTitle" xml:space="preserve"><value>Dieses Fenster blockiert Screenshots</value></data>
   <data name="ProtectedWindowMessage" xml:space="preserve"><value>{0} hat den Windows-Aufnahmeschutz aktiviert. Deaktiviere ihn vor der Aufnahme in der App. Signal: Einstellungen &gt; Datenschutz &gt; Bildschirmschutz.</value></data>
   <data name="ProtectedWindowBadge" xml:space="preserve"><value>{0} · Screenshot blockiert</value></data>
@@ -82,6 +83,9 @@
   <data name="ScreenshotTitle.Text" xml:space="preserve"><value>Screenshot</value></data>
   <data name="ScreenshotHint.Text" xml:space="preserve"><value>Fenster, Bereich oder automatische Scrollaufnahme</value></data>
   <data name="ScrollingCaptureSaved" xml:space="preserve"><value>Scrollaufnahme gespeichert</value></data>
+  <data name="ScrollingCaptureUnavailable" xml:space="preserve"><value>Das gewählte Fenster stellt kein vertikales Scrollen bereit.</value></data>
+  <data name="ScrollingCaptureNoMovement" xml:space="preserve"><value>Im gewählten Bereich wurde keine Scrollbewegung erkannt.</value></data>
+  <data name="ScrollingCaptureResetFailed" xml:space="preserve"><value>BetterCapture konnte den gewählten scrollenden Inhalt nicht an den Anfang zurücksetzen.</value></data>
   <data name="VideoTitle.Text" xml:space="preserve"><value>Video</value></data>
   <data name="VideoHint.Text" xml:space="preserve"><value>Ausgewähltes Fenster oder Bereich aufnehmen</value></data>
   <data name="LibraryLabel.Text" xml:space="preserve"><value>Bibliothek</value></data>
