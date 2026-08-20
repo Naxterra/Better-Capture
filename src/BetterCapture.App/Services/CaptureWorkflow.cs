@@ -52,20 +52,35 @@ internal sealed class CaptureWorkflow
         bool saveHdrMaster)
     {
         var selectedFrame = prepared.Frame.Crop(selection.Region);
-        var analysis = ScRgbToneMapper.Analyze(selectedFrame);
-        var paths = FindAvailablePaths(selectedFrame.Metadata.CapturedAt);
-        Directory.CreateDirectory(paths.Directory);
         var capturedDesktopBounds = new PixelRect(
             selection.Region.X + prepared.Target.DesktopBounds.X,
             selection.Region.Y + prepared.Target.DesktopBounds.Y,
             selection.Region.Width,
             selection.Region.Height);
+        return await SaveFrameAsync(
+            selectedFrame,
+            selection.Source,
+            capturedDesktopBounds,
+            prepared.SdrWhiteLevelNits,
+            saveHdrMaster);
+    }
+
+    internal async Task<CaptureSaveResult> SaveFrameAsync(
+        ScRgbFrame selectedFrame,
+        CaptureSourceInfo source,
+        PixelRect capturedDesktopBounds,
+        float sdrWhiteLevelNits,
+        bool saveHdrMaster)
+    {
+        var analysis = ScRgbToneMapper.Analyze(selectedFrame);
+        var paths = FindAvailablePaths(selectedFrame.Metadata.CapturedAt);
+        Directory.CreateDirectory(paths.Directory);
         var embeddedMetadata = new Dictionary<string, string>
         {
-            ["Description"] = selection.Source.Description,
-            ["SourceApplication"] = selection.Source.ApplicationName,
-            ["SourceWindow"] = selection.Source.WindowTitle,
-            ["CaptureKind"] = selection.Source.Kind.ToString(),
+            ["Description"] = source.Description,
+            ["SourceApplication"] = source.ApplicationName,
+            ["SourceWindow"] = source.WindowTitle,
+            ["CaptureKind"] = source.Kind.ToString(),
             ["Software"] = "BetterCapture",
         };
 
@@ -73,7 +88,7 @@ internal sealed class CaptureWorkflow
         {
             var image = ScRgbToneMapper.ToBgra8(
                 selectedFrame,
-                settings: new ToneMapSettings { SdrWhiteLevelNits = prepared.SdrWhiteLevelNits });
+                settings: new ToneMapSettings { SdrWhiteLevelNits = sdrWhiteLevelNits });
             PngWriter.Write(paths.SdrPngPath, image, embeddedMetadata);
         });
         var exrTask = saveHdrMaster
@@ -82,10 +97,10 @@ internal sealed class CaptureWorkflow
         var metadataTask = WriteMetadataAsync(
             paths,
             selectedFrame,
-            selection.Source,
+            source,
             capturedDesktopBounds,
             analysis,
-            prepared.SdrWhiteLevelNits,
+            sdrWhiteLevelNits,
             saveHdrMaster);
         await Task.WhenAll(pngTask, exrTask, metadataTask);
 
@@ -96,8 +111,8 @@ internal sealed class CaptureWorkflow
             selectedFrame.Height,
             analysis,
             selectedFrame.Metadata,
-            prepared.SdrWhiteLevelNits,
-            selection.Source,
+            sdrWhiteLevelNits,
+            source,
             paths.MetadataPath);
     }
 

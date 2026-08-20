@@ -56,6 +56,9 @@
   <data name="HotkeyInfo.Message" xml:space="preserve"><value>Registering the global shortcut…</value></data>
   <data name="OverlayPrimary.Text" xml:space="preserve"><value>Click a window or drag a custom area</value></data>
   <data name="OverlaySecondary.Text" xml:space="preserve"><value>•  right-click or Esc to cancel</value></data>
+  <data name="ProtectedWindowTitle" xml:space="preserve"><value>This window blocks screenshots</value></data>
+  <data name="ProtectedWindowMessage" xml:space="preserve"><value>{0} enabled Windows screen-capture protection. Disable it in the app before capturing. Signal: Settings &gt; Privacy &gt; Screen security.</value></data>
+  <data name="ProtectedWindowBadge" xml:space="preserve"><value>{0} · screenshot blocked</value></data>
   <data name="PreparingSmartCapture" xml:space="preserve"><value>Preparing smart capture…</value></data>
   <data name="CaptureFailedTitle" xml:space="preserve"><value>Capture failed</value></data>
   <data name="UseThisFolder" xml:space="preserve"><value>Use this folder</value></data>
@@ -77,7 +80,8 @@
   <data name="CompactPrompt.Text" xml:space="preserve"><value>Choose capture type</value></data>
   <data name="CompactHint.Text" xml:space="preserve"><value>The same smart selector handles windows, full screen, and custom areas.</value></data>
   <data name="ScreenshotTitle.Text" xml:space="preserve"><value>Screenshot</value></data>
-  <data name="ScreenshotHint.Text" xml:space="preserve"><value>Click a window or drag an area</value></data>
+  <data name="ScreenshotHint.Text" xml:space="preserve"><value>Window, area, or automatic scrolling</value></data>
+  <data name="ScrollingCaptureSaved" xml:space="preserve"><value>Scrolling capture saved</value></data>
   <data name="VideoTitle.Text" xml:space="preserve"><value>Video</value></data>
   <data name="VideoHint.Text" xml:space="preserve"><value>Record the selected window or area</value></data>
   <data name="LibraryLabel.Text" xml:space="preserve"><value>Library</value></data>

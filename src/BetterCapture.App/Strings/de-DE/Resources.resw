@@ -56,6 +56,9 @@
   <data name="HotkeyInfo.Message" xml:space="preserve"><value>Globale Tastenkombination wird registriert…</value></data>
   <data name="OverlayPrimary.Text" xml:space="preserve"><value>Fenster anklicken oder eigenen Bereich aufziehen</value></data>
   <data name="OverlaySecondary.Text" xml:space="preserve"><value>•  Rechtsklick oder Esc zum Abbrechen</value></data>
+  <data name="ProtectedWindowTitle" xml:space="preserve"><value>Dieses Fenster blockiert Screenshots</value></data>
+  <data name="ProtectedWindowMessage" xml:space="preserve"><value>{0} hat den Windows-Aufnahmeschutz aktiviert. Deaktiviere ihn vor der Aufnahme in der App. Signal: Einstellungen &gt; Datenschutz &gt; Bildschirmschutz.</value></data>
+  <data name="ProtectedWindowBadge" xml:space="preserve"><value>{0} · Screenshot blockiert</value></data>
   <data name="PreparingSmartCapture" xml:space="preserve"><value>Intelligente Aufnahme wird vorbereitet…</value></data>
   <data name="CaptureFailedTitle" xml:space="preserve"><value>Aufnahme fehlgeschlagen</value></data>
   <data name="UseThisFolder" xml:space="preserve"><value>Diesen Ordner verwenden</value></data>
@@ -77,7 +80,8 @@
   <data name="CompactPrompt.Text" xml:space="preserve"><value>Aufnahmeart wählen</value></data>
   <data name="CompactHint.Text" xml:space="preserve"><value>Dieselbe intelligente Auswahl erkennt Fenster, Vollbild und eigene Bereiche.</value></data>
   <data name="ScreenshotTitle.Text" xml:space="preserve"><value>Screenshot</value></data>
-  <data name="ScreenshotHint.Text" xml:space="preserve"><value>Fenster anklicken oder Bereich aufziehen</value></data>
+  <data name="ScreenshotHint.Text" xml:space="preserve"><value>Fenster, Bereich oder automatische Scrollaufnahme</value></data>
+  <data name="ScrollingCaptureSaved" xml:space="preserve"><value>Scrollaufnahme gespeichert</value></data>
   <data name="VideoTitle.Text" xml:space="preserve"><value>Video</value></data>
   <data name="VideoHint.Text" xml:space="preserve"><value>Ausgewähltes Fenster oder Bereich aufnehmen</value></data>
   <data name="LibraryLabel.Text" xml:space="preserve"><value>Bibliothek</value></data>

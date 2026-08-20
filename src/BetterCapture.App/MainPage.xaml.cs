@@ -112,9 +112,11 @@ public sealed partial class MainPage : Page
     internal void ShowCapture(CaptureSaveResult result)
     {
         CaptureInfo.Severity = InfoBarSeverity.Success;
-        CaptureInfo.Title = result.Analysis.HasExtendedRange
-            ? Localizer.Get("HdrCaptureSaved")
-            : Localizer.Get("CaptureSaved");
+        CaptureInfo.Title = result.Source.Kind == BetterCapture.Core.Capture.CaptureSelectionKind.Scrolling
+            ? Localizer.Get("ScrollingCaptureSaved")
+            : result.Analysis.HasExtendedRange
+                ? Localizer.Get("HdrCaptureSaved")
+                : Localizer.Get("CaptureSaved");
         CaptureInfo.Message = Localizer.Format(
             "CaptureResultMessage",
             result.Source.Description,

@@ -5,4 +5,5 @@ public enum CaptureSelectionKind
     Window,
     Region,
     FullScreen,
+    Scrolling,
 }
