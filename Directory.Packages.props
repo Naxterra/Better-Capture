@@ -7,6 +7,7 @@
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.6.0" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageVersion Include="Interop.UIAutomationClient" Version="10.19041.0" />
     <PackageVersion Include="SkiaSharp" Version="4.151.1" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="4.151.1" />
     <PackageVersion Include="SkiaSharp.Views.WinUI" Version="4.151.1" />

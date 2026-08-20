@@ -7,7 +7,9 @@ public sealed class ScrollingFrameStitcher
     private const double UnchangedErrorThreshold = 2.0;
     private const double MaximumOverlapError = 28.0;
 
-    private readonly List<(ScRgbFrame Frame, int Advance)> _segments = [];
+    private readonly List<Segment> _segments = [];
+    private readonly CaptureFrameMetadata _metadata;
+    private readonly int _frameHeight;
     private Bgra8Image _lastPreview;
 
     public ScrollingFrameStitcher(ScRgbFrame firstFrame, Bgra8Image firstPreview)
@@ -15,7 +17,9 @@ public sealed class ScrollingFrameStitcher
         ArgumentNullException.ThrowIfNull(firstFrame);
         ArgumentNullException.ThrowIfNull(firstPreview);
         ValidateDimensions(firstFrame, firstPreview);
-        _segments.Add((firstFrame, firstFrame.Height));
+        _segments.Add(new Segment(firstFrame.Pixels.ToArray(), firstFrame.Height));
+        _metadata = firstFrame.Metadata;
+        _frameHeight = firstFrame.Height;
         _lastPreview = firstPreview;
         Width = firstFrame.Width;
         Height = firstFrame.Height;
@@ -31,22 +35,34 @@ public sealed class ScrollingFrameStitcher
         ScRgbFrame frame,
         Bgra8Image preview,
         int maximumHeight,
-        out int advance)
+        out int advance,
+        int preferredAdvance = 0,
+        int bottomTrim = 0,
+        bool allowFallback = true)
     {
         ArgumentNullException.ThrowIfNull(frame);
         ArgumentNullException.ThrowIfNull(preview);
+        advance = 0;
         ValidateDimensions(frame, preview);
 
-        if (frame.Width != Width || frame.Height != _segments[0].Frame.Height)
+        if (frame.Width != Width || frame.Height != _frameHeight)
         {
             throw new ArgumentException("Scrolling capture frames must have matching dimensions.", nameof(frame));
         }
 
         if (Height >= maximumHeight ||
-            !TryFindVerticalAdvance(_lastPreview, preview, out advance))
+            (preferredAdvance <= 0 && !TryFindVerticalAdvance(
+                _lastPreview,
+                preview,
+                out advance,
+                allowFallback)))
         {
-            advance = 0;
             return false;
+        }
+
+        if (preferredAdvance > 0)
+        {
+            advance = Math.Clamp(preferredAdvance, 1, frame.Height - 1);
         }
 
         advance = Math.Min(advance, maximumHeight - Height);
@@ -55,9 +71,17 @@ public sealed class ScrollingFrameStitcher
             return false;
         }
 
-        _segments.Add((frame, advance));
+        var trimmedRows = Math.Clamp(bottomTrim, 0, Math.Max(0, advance - 1));
+        var rowCount = advance - trimmedRows;
+        var channelsPerRow = checked(Width * ScRgbFrame.ChannelCount);
+        var strip = new Half[checked(rowCount * channelsPerRow)];
+        frame.Pixels.Span.Slice(
+                checked((frame.Height - advance) * channelsPerRow),
+                strip.Length)
+            .CopyTo(strip);
+        _segments.Add(new Segment(strip, rowCount));
         _lastPreview = preview;
-        Height += advance;
+        Height += rowCount;
         return true;
     }
 
@@ -66,23 +90,20 @@ public sealed class ScrollingFrameStitcher
         var channelsPerRow = checked(Width * ScRgbFrame.ChannelCount);
         var pixels = new Half[checked(Height * channelsPerRow)];
         var destination = pixels.AsSpan();
-        var first = _segments[0].Frame;
-        first.Pixels.Span.CopyTo(destination);
-        var destinationRow = first.Height;
+        _segments[0].Pixels.AsSpan().CopyTo(destination);
+        var destinationRow = _segments[0].RowCount;
 
-        foreach (var (frame, advance) in _segments.Skip(1))
+        foreach (var segment in _segments.Skip(1))
         {
-            var sourceRow = frame.Height - advance;
-            var sourceOffset = checked(sourceRow * channelsPerRow);
-            var length = checked(advance * channelsPerRow);
-            frame.Pixels.Span.Slice(sourceOffset, length)
+            var length = checked(segment.RowCount * channelsPerRow);
+            segment.Pixels.AsSpan(0, length)
                 .CopyTo(destination.Slice(destinationRow * channelsPerRow, length));
-            destinationRow += advance;
+            destinationRow += segment.RowCount;
         }
 
-        var metadata = first.Metadata with
+        var metadata = _metadata with
         {
-            CaptureBackend = $"{first.Metadata.CaptureBackend} / scrolling stitch ({FrameCount} frames)",
+            CaptureBackend = $"{_metadata.CaptureBackend} / scrolling stitch ({FrameCount} frames)",
         };
         return new ScRgbFrame(Width, Height, pixels, metadata);
     }
@@ -90,7 +111,8 @@ public sealed class ScrollingFrameStitcher
     public static bool TryFindVerticalAdvance(
         Bgra8Image previous,
         Bgra8Image current,
-        out int advance)
+        out int advance,
+        bool allowFallback = true)
     {
         ArgumentNullException.ThrowIfNull(previous);
         ArgumentNullException.ThrowIfNull(current);
@@ -107,7 +129,7 @@ public sealed class ScrollingFrameStitcher
         }
 
         var minimumAdvance = Math.Max(8, previous.Height / 40);
-        var maximumAdvance = Math.Max(minimumAdvance, Math.Min(previous.Height - 16, previous.Height * 9 / 10));
+        var maximumAdvance = Math.Max(minimumAdvance, Math.Min(previous.Height - 16, previous.Height * 3 / 5));
         var coarseStep = Math.Max(1, previous.Height / 240);
         var bestAdvance = 0;
         var bestError = double.MaxValue;
@@ -138,6 +160,12 @@ public sealed class ScrollingFrameStitcher
             bestError > MaximumOverlapError ||
             bestError >= unchangedError * 0.88)
         {
+            if (!allowFallback)
+            {
+                advance = 0;
+                return false;
+            }
+
             advance = Math.Clamp(previous.Height * 3 / 4, minimumAdvance, maximumAdvance);
             return true;
         }
@@ -249,4 +277,6 @@ public sealed class ScrollingFrameStitcher
             throw new ArgumentException("The FP16 frame and preview dimensions must match.", nameof(preview));
         }
     }
+
+    private sealed record Segment(Half[] Pixels, int RowCount);
 }

@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices.WindowsRuntime;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -30,10 +32,14 @@ internal sealed partial class SelectionOverlayWindow : Window
     private readonly Brush _normalSelectionStroke = new SolidColorBrush(Microsoft.UI.Colors.White);
     private readonly Brush _protectedSelectionStroke = new SolidColorBrush(
         Microsoft.UI.ColorHelper.FromArgb(255, 255, 200, 61));
+    private readonly Brush _scrollingSelectionStroke = new SolidColorBrush(
+        Microsoft.UI.ColorHelper.FromArgb(255, 255, 152, 0));
+    private readonly Dictionary<nint, PixelRect?> _scrollableViewports = [];
     private readonly string _defaultPrimaryText;
     private readonly string _defaultSecondaryText;
     private WinPoint? _dragStart;
     private CaptureCandidate? _pressedCandidate;
+    private CaptureCandidate? _hoverCandidate;
     private bool _isDragging;
 
     internal SelectionOverlayWindow(
@@ -48,6 +54,8 @@ internal sealed partial class SelectionOverlayWindow : Window
         _defaultPrimaryText = Localizer.Get("OverlayPrimary/Text");
         _defaultSecondaryText = Localizer.Get("OverlaySecondary/Text");
         ShowDefaultInstruction();
+        ToolTipService.SetToolTip(VerticalScrollButton, Localizer.Get("ScrollingCaptureArrow"));
+        AutomationProperties.SetName(VerticalScrollButton, Localizer.Get("ScrollingCaptureArrow"));
         Title = Localizer.Get("SelectorWindowTitle");
 
         PreviewImage.Source = CreateBitmap(preview.Width, preview.Height, preview.Pixels);
@@ -97,6 +105,11 @@ internal sealed partial class SelectionOverlayWindow : Window
 
     private void InteractionCanvas_PointerPressed(object sender, PointerRoutedEventArgs args)
     {
+        if (VerticalScrollButton.IsPointerOver)
+        {
+            return;
+        }
+
         var point = args.GetCurrentPoint(InteractionCanvas);
         if (point.Properties.IsRightButtonPressed)
         {
@@ -129,6 +142,7 @@ internal sealed partial class SelectionOverlayWindow : Window
             {
                 _isDragging = true;
                 InstructionBar.Visibility = Visibility.Collapsed;
+                VerticalScrollButton.Visibility = Visibility.Collapsed;
             }
 
             if (_isDragging)
@@ -227,6 +241,8 @@ internal sealed partial class SelectionOverlayWindow : Window
         var candidate = FindCandidate(position);
         if (candidate is null)
         {
+            _hoverCandidate = null;
+            VerticalScrollButton.Visibility = Visibility.Collapsed;
             ShowDefaultInstruction();
             ShowPixelRegion(
                 new PixelRect(0, 0, _preview.Width, _preview.Height),
@@ -236,12 +252,19 @@ internal sealed partial class SelectionOverlayWindow : Window
 
         if (candidate.IsCaptureProtected)
         {
+            _hoverCandidate = candidate;
+            VerticalScrollButton.Visibility = Visibility.Collapsed;
             ShowProtectedCandidate(candidate);
             return;
         }
 
+        _hoverCandidate = candidate;
         ShowDefaultInstruction();
-        ShowPixelRegion(candidate.Region, candidate.Source.Description);
+        var canScroll = TryGetScrollableViewport(candidate, out var scrollViewport);
+        ShowPixelRegion(
+            canScroll ? ToMonitorRegion(scrollViewport) : candidate.Region,
+            candidate.Source.Description,
+            isScrollable: canScroll);
     }
 
     private CaptureCandidate? FindCandidate(WinPoint position)
@@ -316,7 +339,11 @@ internal sealed partial class SelectionOverlayWindow : Window
             Math.Clamp(badgeY, 8, Math.Max(8, InteractionCanvas.ActualHeight - DimensionBadge.DesiredSize.Height - 8)));
     }
 
-    private void ShowPixelRegion(PixelRect region, string label, bool isCaptureProtected = false)
+    private void ShowPixelRegion(
+        PixelRect region,
+        string label,
+        bool isCaptureProtected = false,
+        bool isScrollable = false)
     {
         if (InteractionCanvas.ActualWidth <= 0 || InteractionCanvas.ActualHeight <= 0)
         {
@@ -333,7 +360,12 @@ internal sealed partial class SelectionOverlayWindow : Window
         SelectionRectangle.Visibility = Visibility.Visible;
         SelectionRectangle.Stroke = isCaptureProtected
             ? _protectedSelectionStroke
-            : _normalSelectionStroke;
+            : isScrollable
+                ? _scrollingSelectionStroke
+                : _normalSelectionStroke;
+        SelectionRectangle.StrokeDashArray = isScrollable
+            ? new DoubleCollection { 6, 3 }
+            : null;
         DimensionBadge.Visibility = Visibility.Visible;
         CanvasPosition(SelectionRectangle, selection.X, selection.Y);
         SelectionRectangle.Width = selection.Width;
@@ -349,7 +381,66 @@ internal sealed partial class SelectionOverlayWindow : Window
             DimensionBadge,
             Math.Clamp(selection.X, 8, Math.Max(8, InteractionCanvas.ActualWidth - DimensionBadge.DesiredSize.Width - 8)),
             Math.Clamp(badgeY, 8, Math.Max(8, InteractionCanvas.ActualHeight - DimensionBadge.DesiredSize.Height - 8)));
+
+        if (isScrollable)
+        {
+            VerticalScrollButton.Visibility = Visibility.Visible;
+            CanvasPosition(
+                VerticalScrollButton,
+                Math.Clamp(
+                    selection.X + ((selection.Width - VerticalScrollButton.Width) / 2),
+                    8,
+                    Math.Max(8, InteractionCanvas.ActualWidth - VerticalScrollButton.Width - 8)),
+                Math.Clamp(
+                    selection.Bottom - VerticalScrollButton.Height - 18,
+                    8,
+                    Math.Max(8, InteractionCanvas.ActualHeight - VerticalScrollButton.Height - 8)));
+        }
+        else
+        {
+            VerticalScrollButton.Visibility = Visibility.Collapsed;
+        }
     }
+
+    private bool TryGetScrollableViewport(CaptureCandidate candidate, out PixelRect viewport)
+    {
+        if (_scrollableViewports.TryGetValue(candidate.WindowHandle, out var cached))
+        {
+            viewport = cached ?? default;
+            return cached is not null;
+        }
+
+        var canScroll = WindowScrollService.TryGetScrollableViewport(
+            candidate.WindowHandle,
+            candidate.Source.DesktopBounds,
+            out viewport);
+        _scrollableViewports[candidate.WindowHandle] = canScroll ? viewport : null;
+        return canScroll;
+    }
+
+    private void VerticalScrollButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_hoverCandidate is not { IsCaptureProtected: false } candidate ||
+            !TryGetScrollableViewport(candidate, out var viewport))
+        {
+            return;
+        }
+
+        Complete(new SmartCaptureSelection(
+            ToMonitorRegion(viewport),
+            candidate.Source with
+            {
+                Kind = CaptureSelectionKind.Scrolling,
+                DesktopBounds = viewport,
+            },
+            candidate.WindowHandle));
+    }
+
+    private PixelRect ToMonitorRegion(PixelRect desktopBounds) => new PixelRect(
+        desktopBounds.X - _target.DesktopBounds.X,
+        desktopBounds.Y - _target.DesktopBounds.Y,
+        desktopBounds.Width,
+        desktopBounds.Height).ClampTo(_target.DesktopBounds.Size);
 
     private void ShowProtectedCandidate(CaptureCandidate candidate)
     {

@@ -39,8 +39,12 @@ the DWM values makes midtones pale and is intentionally prohibited by tests.
 - `BetterCapture.Core`: capture contracts and platform-neutral frame geometry.
 - `BetterCapture.Core.Tests`: deterministic geometry, color, and encoder tests.
 
-Future `Scrolling`, indexed `Library`, and audio modules will depend on Core
-contracts instead of reaching into the capture engine.
+The scrolling pipeline uses one continuous FP16 WGC session for the selected
+document viewport. UI Automation moves the target in small increments, while
+pixel-overlap matching determines the actual displacement before appending new
+rows. Browser chrome and repeated fixed content are therefore not treated as
+page data. Future indexed-library and audio modules will continue to depend on
+Core contracts instead of reaching into the capture engine.
 
 ## Video pipeline
 

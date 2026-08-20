@@ -3,6 +3,7 @@ using BetterCapture.Capture.Direct3D;
 using BetterCapture.Capture.Displays;
 using BetterCapture.Capture.Interop;
 using BetterCapture.Core.Capture;
+using BetterCapture.Core.Geometry;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Windows.Graphics.Capture;
@@ -26,6 +27,16 @@ public sealed class WindowsGraphicsCaptureService : IDisplayCaptureService
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         return WindowsDisplayCatalog.GetDisplayUnderCursor();
+    }
+
+    public ContinuousDisplayCaptureSession StartContinuousCapture(
+        DisplayTarget target,
+        PixelRect region,
+        bool includeCursor)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(target);
+        return new ContinuousDisplayCaptureSession(target, region, includeCursor);
     }
 
     public async Task<ScRgbFrame> CaptureAsync(

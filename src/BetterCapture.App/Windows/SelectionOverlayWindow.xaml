@@ -86,6 +86,23 @@
                 </StackPanel>
             </Border>
 
+            <Button x:Name="VerticalScrollButton"
+                    Width="56"
+                    Height="56"
+                    Padding="0"
+                    Canvas.ZIndex="10"
+                    AutomationProperties.Name="Scrolling capture"
+                    Background="#FFFF9800"
+                    BorderBrush="White"
+                    BorderThickness="2"
+                    CornerRadius="28"
+                    Click="VerticalScrollButton_Click"
+                    IsTabStop="False"
+                    ToolTipService.ToolTip="Scrolling capture"
+                    Visibility="Collapsed">
+                <FontIcon FontSize="28" Foreground="White" Glyph="&#xE70D;" />
+            </Button>
+
         </Canvas>
     </Grid>
 </Window>

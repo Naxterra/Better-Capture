@@ -153,6 +153,7 @@ public sealed partial class MainPage : Page
 
     private async void ScreenshotButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        CaptureTrace.Write("Screenshot button clicked");
         if (ScreenshotCaptureRequested is not null)
         {
             await ScreenshotCaptureRequested();
