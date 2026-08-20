@@ -1,0 +1,51 @@
+name: Build release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 11 preview SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.100-preview.7.26381.103
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore .\BetterCapture.slnx
+
+      - name: Test
+        shell: pwsh
+        run: dotnet test .\tests\BetterCapture.Core.Tests\BetterCapture.Core.Tests.csproj -c Release --no-restore
+
+      - name: Install Inno Setup 7
+        shell: pwsh
+        run: >-
+          winget install --id JRSoftware.InnoSetup.7 --exact --silent
+          --accept-package-agreements --accept-source-agreements
+
+      - name: Build x64 installer
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          .\installer\Build-Installer.ps1 -Version $version
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $asset = '.\artifacts\installer\BetterCapture-Setup-x64.exe'
+          gh release create $tag $asset --title "BetterCapture $($tag.TrimStart('v'))" --generate-notes --verify-tag

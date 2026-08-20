@@ -1,5 +1,7 @@
 #define MyAppName "BetterCapture"
+#ifndef MyAppVersion
 #define MyAppVersion "1.0.1"
+#endif
 #define MyAppPublisher "Naxterra"
 #define MyAppURL "https://github.com/Naxterra/Better-Capture"
 #define MyAppExeName "BetterCapture.exe"
@@ -31,7 +33,7 @@ MinVersion=10.0.26100
 PrivilegesRequired=lowest
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=1.0.1.0
+VersionInfoVersion={#MyAppVersion}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=BetterCapture x64 installer
 VersionInfoProductName={#MyAppName}

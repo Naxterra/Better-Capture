@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+    [ValidatePattern('^\d+\.\d+\.\d+(?:\.\d+)?$')]
+    [string]$Version = '1.0.1'
+)
 
 $ErrorActionPreference = 'Stop'
 
@@ -39,7 +42,7 @@ if ($LASTEXITCODE -ne 0)
     throw "BetterCapture Release publish failed with exit code $LASTEXITCODE."
 }
 
-& $installerCompiler $installerScript
+& $installerCompiler "/DMyAppVersion=$Version" $installerScript
 if ($LASTEXITCODE -ne 0)
 {
     throw "Inno Setup failed with exit code $LASTEXITCODE."
