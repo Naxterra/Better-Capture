@@ -15,9 +15,7 @@ namespace BetterCapture.App;
 public sealed partial class MainWindow : Window
 {
     private const double PreferredWidthDip = 640;
-    // The dashboard content is intentionally compact. Extra content such as
-    // capture results remains reachable through MainPage's ScrollViewer.
-    private const double PreferredHeightDip = 380;
+    private const double MinimumHeightDip = 380;
     private const double WorkAreaMarginDip = 24;
 
     private readonly WindowsGraphicsCaptureService _captureService = new();
@@ -33,6 +31,7 @@ public sealed partial class MainWindow : Window
     private bool _hotkeyRegistered;
     private int _hotkeyErrorCode;
     private bool _isExiting;
+    private bool _contentResizePending;
     private MainPage? _page;
     private RecordingControlWindow? _recordingControl;
 
@@ -57,7 +56,7 @@ public sealed partial class MainWindow : Window
         Closed += OnClosed;
     }
 
-    private void ResizeAndCenter()
+    private void ResizeAndCenter(bool center = true)
     {
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Nearest);
         if (area is null)
@@ -71,11 +70,22 @@ public sealed partial class MainWindow : Window
         var availableWidth = Math.Max(1, workArea.Width - (margin * 2));
         var availableHeight = Math.Max(1, workArea.Height - (margin * 2));
         var width = Math.Min(availableWidth, (int)Math.Ceiling(PreferredWidthDip * scale));
-        var height = Math.Min(availableHeight, (int)Math.Ceiling(PreferredHeightDip * scale));
+        var contentHeightDip = _page?.ContentExtentHeight ?? 0;
+        var titleBarHeightDip = Math.Max(48, AppTitleBar.ActualHeight);
+        var requestedHeightDip = Math.Max(
+            MinimumHeightDip,
+            contentHeightDip + titleBarHeightDip);
+        var height = Math.Min(availableHeight, (int)Math.Ceiling(requestedHeightDip * scale));
 
+        var x = center
+            ? workArea.X + Math.Max(0, (workArea.Width - width) / 2)
+            : Math.Clamp(AppWindow.Position.X, workArea.X, workArea.X + workArea.Width - width);
+        var y = center
+            ? workArea.Y + Math.Max(0, (workArea.Height - height) / 2)
+            : Math.Clamp(AppWindow.Position.Y, workArea.Y, workArea.Y + workArea.Height - height);
         AppWindow.MoveAndResize(new RectInt32(
-            workArea.X + Math.Max(0, (workArea.Width - width) / 2),
-            workArea.Y + Math.Max(0, (workArea.Height - height) / 2),
+            x,
+            y,
             width,
             height));
     }
@@ -84,6 +94,21 @@ public sealed partial class MainWindow : Window
     {
         RootFrame.Loaded -= RootFrame_Loaded;
         ResizeAndCenter();
+    }
+
+    private void OnContentExtentChanged(object? sender, EventArgs e)
+    {
+        if (_contentResizePending)
+        {
+            return;
+        }
+
+        _contentResizePending = true;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            _contentResizePending = false;
+            ResizeAndCenter(center: false);
+        });
     }
 
     private void OnActivated(object sender, WindowActivatedEventArgs args)
@@ -152,7 +177,7 @@ public sealed partial class MainWindow : Window
                 target,
                 new CaptureOptions
                 {
-                    IncludeCursor = _page?.IncludeCursor ?? true,
+                    IncludeCursor = _page?.IncludeCursor ?? false,
                     RequestBorderlessCapture = true,
                 });
 
@@ -173,7 +198,7 @@ public sealed partial class MainWindow : Window
                 var session = _workflow.StartVideoRecording(
                     prepared,
                     selection,
-                    includeCursor: _page?.IncludeCursor ?? true);
+                    includeCursor: _page?.IncludeCursor ?? false);
                 _recordingControl = new RecordingControlWindow(
                     session,
                     target,
@@ -347,6 +372,8 @@ public sealed partial class MainWindow : Window
         Activate();
     }
 
+    internal void ActivateFromSecondaryInstance() => ShowDashboard();
+
     internal void StartInTray()
     {
         if (_minimizeToTray)
@@ -430,6 +457,7 @@ public sealed partial class MainWindow : Window
     private void AttachMainPage(MainPage page)
     {
         _page = page;
+        _page.ContentExtentChanged += OnContentExtentChanged;
         _page.ScreenshotCaptureRequested = CaptureScreenshotAsync;
         _page.VideoCaptureRequested = CaptureVideoAsync;
         _page.OpenOutputFolderRequested = _workflow.OpenOutputFolderAsync;
@@ -570,6 +598,10 @@ public sealed partial class MainWindow : Window
     private void OnClosed(object sender, WindowEventArgs args)
     {
         _isExiting = true;
+        if (_page is not null)
+        {
+            _page.ContentExtentChanged -= OnContentExtentChanged;
+        }
         if (_hotkeyService is not null)
         {
             _hotkeyService.Pressed -= OnPrintScreenPressed;

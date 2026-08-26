@@ -270,6 +270,80 @@ public sealed class EditorDocument : IDisposable
         return data;
     }
 
+    public void DeleteRegion(SKRectI region)
+    {
+        var clipped = Clip(region);
+        if (clipped.Width <= 0 || clipped.Height <= 0)
+        {
+            return;
+        }
+
+        SaveUndoState();
+        ClearBitmapRegion(clipped);
+        OnChanged();
+    }
+
+    public SKRectI MoveRegion(SKRectI region, SKPoint destination)
+    {
+        var clipped = Clip(region);
+        if (clipped.Width <= 0 || clipped.Height <= 0)
+        {
+            return clipped;
+        }
+
+        var left = Math.Clamp((int)MathF.Round(destination.X), 0, Math.Max(0, Width - clipped.Width));
+        var top = Math.Clamp((int)MathF.Round(destination.Y), 0, Math.Max(0, Height - clipped.Height));
+        var target = new SKRectI(left, top, left + clipped.Width, top + clipped.Height);
+        if (target == clipped)
+        {
+            return clipped;
+        }
+
+        using var selected = CopyBitmapRegion(clipped);
+        SaveUndoState();
+        ClearBitmapRegion(clipped);
+        using (var canvas = new SKCanvas(_bitmap))
+        {
+            canvas.DrawBitmap(selected, target, SKSamplingOptions.Default, null);
+        }
+
+        OnChanged();
+        return target;
+    }
+
+    public SKRectI ResizeRegion(SKRectI region, int width, int height)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+        var clipped = Clip(region);
+        if (clipped.Width <= 0 || clipped.Height <= 0)
+        {
+            return clipped;
+        }
+
+        var resizedWidth = Math.Min(width, Width - clipped.Left);
+        var resizedHeight = Math.Min(height, Height - clipped.Top);
+        var target = new SKRectI(
+            clipped.Left,
+            clipped.Top,
+            clipped.Left + resizedWidth,
+            clipped.Top + resizedHeight);
+        using var selected = CopyBitmapRegion(clipped);
+        SaveUndoState();
+        ClearBitmapRegion(clipped);
+        using (var canvas = new SKCanvas(_bitmap))
+        {
+            canvas.DrawBitmap(
+                selected,
+                target,
+                new SKSamplingOptions(SKFilterMode.Linear),
+                null);
+        }
+
+        OnChanged();
+        return target;
+    }
+
     public void Paste(ReadOnlySpan<byte> encodedImage, SKPoint position)
     {
         using var image = SKBitmap.Decode(encodedImage.ToArray()) ??
@@ -379,6 +453,26 @@ public sealed class EditorDocument : IDisposable
         using var canvas = new SKCanvas(bitmap);
         Render(canvas);
         return bitmap;
+    }
+
+    private SKBitmap CopyBitmapRegion(SKRectI region)
+    {
+        var selected = new SKBitmap(CreateImageInfo(region.Width, region.Height));
+        using var canvas = new SKCanvas(selected);
+        canvas.DrawBitmap(
+            _bitmap,
+            region,
+            SKRect.Create(region.Width, region.Height),
+            SKSamplingOptions.Default,
+            null);
+        return selected;
+    }
+
+    private void ClearBitmapRegion(SKRectI region)
+    {
+        using var canvas = new SKCanvas(_bitmap);
+        using var paint = new SKPaint { BlendMode = SKBlendMode.Clear };
+        canvas.DrawRect(region, paint);
     }
 
     private SKRectI Clip(SKRectI region) => new(

@@ -97,7 +97,7 @@
   <data name="EditorSave.Content" xml:space="preserve"><value>Save</value></data>
   <data name="EditorUndo.Content" xml:space="preserve"><value>Undo</value></data>
   <data name="EditorRedo.Content" xml:space="preserve"><value>Redo</value></data>
-  <data name="EditorSelect.Content" xml:space="preserve"><value>Select</value></data>
+  <data name="EditorSelect.Content" xml:space="preserve"><value>Select area</value></data>
   <data name="EditorCrop.Content" xml:space="preserve"><value>Crop</value></data>
   <data name="EditorResize.Content" xml:space="preserve"><value>Resize</value></data>
   <data name="EditorBlur.Content" xml:space="preserve"><value>Blur</value></data>
@@ -106,6 +106,7 @@
   <data name="EditorPaste.Content" xml:space="preserve"><value>Paste</value></data>
   <data name="EditorText.Content" xml:space="preserve"><value>Text</value></data>
   <data name="EditorWatermark.Content" xml:space="preserve"><value>Watermark</value></data>
+  <data name="EditorWatermarkDialogTitle" xml:space="preserve"><value>Add watermark</value></data>
   <data name="EditorArrow.Content" xml:space="preserve"><value>Arrow</value></data>
   <data name="EditorRectangle.Content" xml:space="preserve"><value>Rectangle</value></data>
   <data name="EditorEllipse.Content" xml:space="preserve"><value>Ellipse</value></data>
@@ -117,7 +118,7 @@
   <data name="ColorBlack.Content" xml:space="preserve"><value>Black</value></data>
   <data name="ColorBlue.Content" xml:space="preserve"><value>Blue</value></data>
   <data name="EditorWindowTitle" xml:space="preserve"><value>BetterCapture Editor</value></data>
-  <data name="EditorSelectHint" xml:space="preserve"><value>Drag to select an area.</value></data>
+  <data name="EditorSelectHint" xml:space="preserve"><value>Drag an area, then choose Copy, Cut, Delete, Move, Resize, or Crop.</value></data>
   <data name="EditorCropHint" xml:space="preserve"><value>Drag the area to keep.</value></data>
   <data name="EditorBlurHint" xml:space="preserve"><value>Drag the area to blur.</value></data>
   <data name="EditorShapeHint" xml:space="preserve"><value>Drag to draw the selected shape.</value></data>
@@ -125,6 +126,14 @@
   <data name="EditorTextPlacementHint" xml:space="preserve"><value>Click a location or drag a text box. Click existing text to edit it.</value></data>
   <data name="EditorSelectFirst" xml:space="preserve"><value>Select an area first.</value></data>
   <data name="EditorCopied" xml:space="preserve"><value>Selection copied to the clipboard.</value></data>
+  <data name="EditorCutToClipboard" xml:space="preserve"><value>Selection cut to the clipboard.</value></data>
+  <data name="EditorDeleteSelection" xml:space="preserve"><value>Delete</value></data>
+  <data name="EditorMoveSelection" xml:space="preserve"><value>Move</value></data>
+  <data name="EditorResizeSelection" xml:space="preserve"><value>Resize area</value></data>
+  <data name="EditorMoveSelectionHint" xml:space="preserve"><value>Drag inside the selected area to move it.</value></data>
+  <data name="EditorSelectionDeleted" xml:space="preserve"><value>Selected area deleted.</value></data>
+  <data name="EditorSelectionResized" xml:space="preserve"><value>Selected area resized.</value></data>
+  <data name="EditorTrimmed" xml:space="preserve"><value>Image cropped to the selected area.</value></data>
   <data name="EditorClipboardNoImage" xml:space="preserve"><value>The clipboard does not contain an image.</value></data>
   <data name="EditorSaved" xml:space="preserve"><value>Image saved.</value></data>
   <data name="Width" xml:space="preserve"><value>Width</value></data>
@@ -165,7 +174,7 @@
   <data name="EditorMenuCrop.Text" xml:space="preserve"><value>Crop</value></data>
   <data name="EditorMenuResize.Text" xml:space="preserve"><value>Resize…</value></data>
   <data name="EditorMenuBlur.Text" xml:space="preserve"><value>Blur area</value></data>
-  <data name="EditorMenuSelect.Text" xml:space="preserve"><value>Selection</value></data>
+  <data name="EditorMenuSelect.Text" xml:space="preserve"><value>Select area</value></data>
   <data name="EditorMenuText.Text" xml:space="preserve"><value>Text</value></data>
   <data name="EditorMenuWatermark.Text" xml:space="preserve"><value>Watermark</value></data>
   <data name="EditorMenuArrow.Text" xml:space="preserve"><value>Arrow</value></data>
@@ -187,7 +196,7 @@
   <data name="EditorFontSizeLabel.Text" xml:space="preserve"><value>Size</value></data>
   <data name="EditorSelectionAll" xml:space="preserve"><value>The complete image is selected.</value></data>
   <data name="EditorKeyboardShortcuts" xml:space="preserve"><value>Keyboard shortcuts</value></data>
-  <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Ctrl+S  Save&#x0A;Ctrl+Shift+S  Save as&#x0A;Ctrl+Z / Ctrl+Y  Undo / Redo&#x0A;Ctrl+X / Ctrl+C / Ctrl+V  Cut / Copy / Paste&#x0A;Ctrl+A  Select all&#x0A;Ctrl+0  Actual size&#x0A;Ctrl+Enter  Finish inline text&#x0A;Escape  Cancel inline text</value></data>
+  <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Ctrl+S  Save&#x0A;Ctrl+Shift+S  Save as&#x0A;Ctrl+Z / Ctrl+Y  Undo / Redo&#x0A;Ctrl+X / Ctrl+C / Ctrl+V  Cut / Copy / Paste&#x0A;Delete  Delete selected area&#x0A;Ctrl+A  Select all&#x0A;Ctrl+0  Actual size&#x0A;Ctrl+Enter  Finish inline text&#x0A;Escape  Cancel inline text</value></data>
   <data name="EditorAboutTitle" xml:space="preserve"><value>About BetterCapture Editor</value></data>
   <data name="EditorAboutText" xml:space="preserve"><value>BetterCapture provides local, offline screenshot editing with editable annotations and no cloud dependency.</value></data>
   <data name="About" xml:space="preserve"><value>About BetterCapture</value></data>

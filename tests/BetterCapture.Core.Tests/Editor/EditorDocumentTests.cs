@@ -86,6 +86,36 @@ public sealed class EditorDocumentTests
     }
 
     [Fact]
+    public void SelectionEdits_MoveResizeDeleteAndUndo()
+    {
+        var sourcePath = TemporaryPath();
+        try
+        {
+            CreateSource(sourcePath);
+            using var document = EditorDocument.Load(sourcePath);
+
+            var moved = document.MoveRegion(
+                new SKRectI(2, 2, 8, 8),
+                new SKPoint(10, 3));
+            Assert.Equal(new SKRectI(10, 3, 16, 9), moved);
+
+            var resized = document.ResizeRegion(moved, 4, 3);
+            Assert.Equal(new SKRectI(10, 3, 14, 6), resized);
+
+            document.DeleteRegion(resized);
+            Assert.True(document.CanUndo);
+
+            document.Undo();
+            Assert.Equal(20, document.Width);
+            Assert.Equal(12, document.Height);
+        }
+        finally
+        {
+            File.Delete(sourcePath);
+        }
+    }
+
+    [Fact]
     public void Text_RemainsAddressableAndEditableAfterPlacement()
     {
         var sourcePath = TemporaryPath();

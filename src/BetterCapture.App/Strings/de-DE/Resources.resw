@@ -97,7 +97,7 @@
   <data name="EditorSave.Content" xml:space="preserve"><value>Speichern</value></data>
   <data name="EditorUndo.Content" xml:space="preserve"><value>Rückgängig</value></data>
   <data name="EditorRedo.Content" xml:space="preserve"><value>Wiederholen</value></data>
-  <data name="EditorSelect.Content" xml:space="preserve"><value>Auswählen</value></data>
+  <data name="EditorSelect.Content" xml:space="preserve"><value>Bereich wählen</value></data>
   <data name="EditorCrop.Content" xml:space="preserve"><value>Zuschneiden</value></data>
   <data name="EditorResize.Content" xml:space="preserve"><value>Größe ändern</value></data>
   <data name="EditorBlur.Content" xml:space="preserve"><value>Weichzeichnen</value></data>
@@ -106,6 +106,7 @@
   <data name="EditorPaste.Content" xml:space="preserve"><value>Einfügen</value></data>
   <data name="EditorText.Content" xml:space="preserve"><value>Text</value></data>
   <data name="EditorWatermark.Content" xml:space="preserve"><value>Wasserzeichen</value></data>
+  <data name="EditorWatermarkDialogTitle" xml:space="preserve"><value>Wasserzeichen hinzufügen</value></data>
   <data name="EditorArrow.Content" xml:space="preserve"><value>Pfeil</value></data>
   <data name="EditorRectangle.Content" xml:space="preserve"><value>Rechteck</value></data>
   <data name="EditorEllipse.Content" xml:space="preserve"><value>Ellipse</value></data>
@@ -117,7 +118,7 @@
   <data name="ColorBlack.Content" xml:space="preserve"><value>Schwarz</value></data>
   <data name="ColorBlue.Content" xml:space="preserve"><value>Blau</value></data>
   <data name="EditorWindowTitle" xml:space="preserve"><value>BetterCapture-Editor</value></data>
-  <data name="EditorSelectHint" xml:space="preserve"><value>Ziehe einen Bereich zur Auswahl auf.</value></data>
+  <data name="EditorSelectHint" xml:space="preserve"><value>Ziehe einen Bereich auf und wähle dann Kopieren, Ausschneiden, Löschen, Verschieben, Größe oder Zuschneiden.</value></data>
   <data name="EditorCropHint" xml:space="preserve"><value>Ziehe den Bereich auf, der erhalten bleiben soll.</value></data>
   <data name="EditorBlurHint" xml:space="preserve"><value>Ziehe den weichzuzeichnenden Bereich auf.</value></data>
   <data name="EditorShapeHint" xml:space="preserve"><value>Ziehe, um die gewählte Form zu zeichnen.</value></data>
@@ -125,6 +126,14 @@
   <data name="EditorTextPlacementHint" xml:space="preserve"><value>Klicke auf eine Position oder ziehe ein Textfeld auf. Vorhandenen Text zum Bearbeiten anklicken.</value></data>
   <data name="EditorSelectFirst" xml:space="preserve"><value>Wähle zuerst einen Bereich aus.</value></data>
   <data name="EditorCopied" xml:space="preserve"><value>Auswahl in die Zwischenablage kopiert.</value></data>
+  <data name="EditorCutToClipboard" xml:space="preserve"><value>Auswahl wurde in die Zwischenablage ausgeschnitten.</value></data>
+  <data name="EditorDeleteSelection" xml:space="preserve"><value>Löschen</value></data>
+  <data name="EditorMoveSelection" xml:space="preserve"><value>Verschieben</value></data>
+  <data name="EditorResizeSelection" xml:space="preserve"><value>Bereichsgröße</value></data>
+  <data name="EditorMoveSelectionHint" xml:space="preserve"><value>Ziehe innerhalb des ausgewählten Bereichs, um ihn zu verschieben.</value></data>
+  <data name="EditorSelectionDeleted" xml:space="preserve"><value>Ausgewählter Bereich gelöscht.</value></data>
+  <data name="EditorSelectionResized" xml:space="preserve"><value>Größe des ausgewählten Bereichs geändert.</value></data>
+  <data name="EditorTrimmed" xml:space="preserve"><value>Bild auf den ausgewählten Bereich zugeschnitten.</value></data>
   <data name="EditorClipboardNoImage" xml:space="preserve"><value>Die Zwischenablage enthält kein Bild.</value></data>
   <data name="EditorSaved" xml:space="preserve"><value>Bild gespeichert.</value></data>
   <data name="Width" xml:space="preserve"><value>Breite</value></data>
@@ -165,7 +174,7 @@
   <data name="EditorMenuCrop.Text" xml:space="preserve"><value>Zuschneiden</value></data>
   <data name="EditorMenuResize.Text" xml:space="preserve"><value>Größe ändern…</value></data>
   <data name="EditorMenuBlur.Text" xml:space="preserve"><value>Bereich weichzeichnen</value></data>
-  <data name="EditorMenuSelect.Text" xml:space="preserve"><value>Auswahl</value></data>
+  <data name="EditorMenuSelect.Text" xml:space="preserve"><value>Bereich wählen</value></data>
   <data name="EditorMenuText.Text" xml:space="preserve"><value>Text</value></data>
   <data name="EditorMenuWatermark.Text" xml:space="preserve"><value>Wasserzeichen</value></data>
   <data name="EditorMenuArrow.Text" xml:space="preserve"><value>Pfeil</value></data>
@@ -187,7 +196,7 @@
   <data name="EditorFontSizeLabel.Text" xml:space="preserve"><value>Größe</value></data>
   <data name="EditorSelectionAll" xml:space="preserve"><value>Das gesamte Bild ist ausgewählt.</value></data>
   <data name="EditorKeyboardShortcuts" xml:space="preserve"><value>Tastenkombinationen</value></data>
-  <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Strg+S  Speichern&#x0A;Strg+Umschalt+S  Speichern unter&#x0A;Strg+Z / Strg+Y  Rückgängig / Wiederholen&#x0A;Strg+X / Strg+C / Strg+V  Ausschneiden / Kopieren / Einfügen&#x0A;Strg+A  Alles auswählen&#x0A;Strg+0  Originalgröße&#x0A;Strg+Enter  Inline-Text abschließen&#x0A;Escape  Inline-Text abbrechen</value></data>
+  <data name="EditorKeyboardShortcutsText" xml:space="preserve"><value>Strg+S  Speichern&#x0A;Strg+Umschalt+S  Speichern unter&#x0A;Strg+Z / Strg+Y  Rückgängig / Wiederholen&#x0A;Strg+X / Strg+C / Strg+V  Ausschneiden / Kopieren / Einfügen&#x0A;Entf  Ausgewählten Bereich löschen&#x0A;Strg+A  Alles auswählen&#x0A;Strg+0  Originalgröße&#x0A;Strg+Enter  Inline-Text abschließen&#x0A;Escape  Inline-Text abbrechen</value></data>
   <data name="EditorAboutTitle" xml:space="preserve"><value>Info zu BetterCapture-Editor</value></data>
   <data name="EditorAboutText" xml:space="preserve"><value>BetterCapture bietet lokale Offline-Bildbearbeitung mit editierbaren Anmerkungen und ohne Cloud-Abhängigkeit.</value></data>
   <data name="About" xml:space="preserve"><value>Info zu BetterCapture</value></data>

@@ -44,9 +44,21 @@ public sealed partial class MainPage : Page
 
     internal Func<Task>? ChangeHotkeyRequested { get; set; }
 
+    internal event EventHandler? ContentExtentChanged;
+
     internal bool IncludeCursor => CursorToggle.IsOn;
 
+    internal double ContentExtentHeight => DashboardContent.DesiredSize.Height;
+
     internal void SetOutputFolder(string path) => OutputFolderText.Text = path;
+
+    private void DashboardContent_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+    {
+        if (Math.Abs(e.NewSize.Height - e.PreviousSize.Height) > 0.5)
+        {
+            ContentExtentChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
 
     private void ApplyLocalization()
     {
