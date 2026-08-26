@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $projectPath = Join-Path $repositoryRoot 'src\BetterCapture.App\BetterCapture.App.csproj'
+$isolatedBuildPath = Join-Path $repositoryRoot 'artifacts\release-bin'
 $publishPath = Join-Path $repositoryRoot 'artifacts\publish\win-x64'
 $installerScript = Join-Path $PSScriptRoot 'BetterCapture.iss'
 $compilerCandidates = @(
@@ -36,7 +37,7 @@ if (Test-Path -LiteralPath $publishPath)
     Remove-Item -LiteralPath $resolvedPublishPath -Recurse -Force
 }
 
-dotnet publish $projectPath -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:PublishReadyToRun=false -o $publishPath --nologo
+dotnet publish $projectPath -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:PublishReadyToRun=false "-p:BaseOutputPath=$isolatedBuildPath\" -o $publishPath --nologo
 if ($LASTEXITCODE -ne 0)
 {
     throw "BetterCapture Release publish failed with exit code $LASTEXITCODE."
