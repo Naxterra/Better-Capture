@@ -1,6 +1,6 @@
 #define MyAppName "BetterCapture"
 #ifndef MyAppVersion
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.0.2"
 #endif
 #define MyAppPublisher "Naxterra"
 #define MyAppURL "https://github.com/Naxterra/Better-Capture"
