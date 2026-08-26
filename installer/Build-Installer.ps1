@@ -48,5 +48,6 @@ if ($LASTEXITCODE -ne 0)
     throw "Inno Setup failed with exit code $LASTEXITCODE."
 }
 
-$installerPath = Join-Path $repositoryRoot 'artifacts\installer\BetterCapture-Setup-x64.exe'
+$installerFileName = "BetterCapture-v$Version-Windows-x64-Setup.exe"
+$installerPath = Join-Path $repositoryRoot "artifacts\installer\$installerFileName"
 Write-Output "Installer created: $installerPath"

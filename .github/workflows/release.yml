@@ -47,5 +47,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = '${{ github.ref_name }}'
-          $asset = '.\artifacts\installer\BetterCapture-Setup-x64.exe'
+          $asset = ".\artifacts\installer\BetterCapture-$tag-Windows-x64-Setup.exe"
           gh release create $tag $asset --title "BetterCapture $($tag.TrimStart('v'))" --generate-notes --verify-tag
