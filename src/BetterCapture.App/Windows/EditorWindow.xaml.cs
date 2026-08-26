@@ -26,6 +26,7 @@ internal sealed partial class EditorWindow : Window
     private WinPoint? _dragStart;
     private WinPoint? _dragCurrent;
     private SKRectI? _selection;
+    private SKRectI? _moveOriginSelection;
     private Guid? _editingTextId;
     private SKPoint _inlineTextBaseline;
     private float _inlineTextMaxWidth;
@@ -51,6 +52,7 @@ internal sealed partial class EditorWindow : Window
         SelectionCanvas.Height = _document.Height;
         InlineEditorCanvas.Width = _document.Width;
         InlineEditorCanvas.Height = _document.Height;
+        InlineEditorCanvas.IsHitTestVisible = false;
         FontFamilyCombo.ItemsSource = SKFontManager.Default.FontFamilies.OrderBy(name => name).ToArray();
         using (var defaultTypeface = SKFontManager.Default.MatchCharacter('A'))
         {
@@ -104,6 +106,7 @@ internal sealed partial class EditorWindow : Window
 
         SelectButton.Content = Localizer.Get("EditorSelect/Content");
         CropButton.Content = Localizer.Get("EditorCrop/Content");
+        ResizeImageButton.Content = Localizer.Get("EditorResize/Content");
         BlurButton.Content = Localizer.Get("EditorBlur/Content");
         TextButton.Content = Localizer.Get("EditorText/Content");
         ArrowButton.Content = Localizer.Get("EditorArrow/Content");
@@ -111,6 +114,11 @@ internal sealed partial class EditorWindow : Window
         EllipseButton.Content = Localizer.Get("EditorEllipse/Content");
         TriangleButton.Content = Localizer.Get("EditorTriangle/Content");
         WatermarkButton.Content = Localizer.Get("EditorWatermark/Content");
+        CopySelectionButton.Content = Localizer.Get("EditorCopy/Content");
+        CutSelectionButton.Content = Localizer.Get("EditorCut/Content");
+        DeleteSelectionButton.Content = Localizer.Get("EditorDeleteSelection");
+        MoveSelectionButton.Content = Localizer.Get("EditorMoveSelection");
+        ResizeSelectionButton.Content = Localizer.Get("EditorResizeSelection");
         PropertiesLabelText.Text = Localizer.Get("EditorPropertiesLabel/Text");
         NoPropertiesText.Text = Localizer.Get("EditorNoPropertiesHint/Text");
         ColorLabelText.Text = Localizer.Get("EditorColorLabel/Text");
@@ -167,6 +175,19 @@ internal sealed partial class EditorWindow : Window
             return;
         }
 
+        if (_tool == EditorInteractionTool.MoveSelection)
+        {
+            if (_selection is not { } selection ||
+                point.X < selection.Left || point.X > selection.Right ||
+                point.Y < selection.Top || point.Y > selection.Bottom)
+            {
+                EditorStatusText.Text = Localizer.Get("EditorMoveSelectionHint");
+                return;
+            }
+
+            _moveOriginSelection = selection;
+        }
+
         if (_tool is EditorInteractionTool.Text or EditorInteractionTool.Select)
         {
             var textElement = _document.HitTestText(new SKPoint((float)point.X, (float)point.Y));
@@ -192,7 +213,14 @@ internal sealed partial class EditorWindow : Window
         }
 
         _dragCurrent = Clamp(args.GetCurrentPoint(EditorCanvas).Position);
-        ShowSelection(Normalize(_dragStart.Value, _dragCurrent.Value));
+        if (_tool == EditorInteractionTool.MoveSelection && _moveOriginSelection is { } moveOrigin)
+        {
+            ShowSelection(ToSkRect(TranslateSelection(moveOrigin, _dragStart.Value, _dragCurrent.Value)));
+        }
+        else
+        {
+            ShowSelection(Normalize(_dragStart.Value, _dragCurrent.Value));
+        }
         EditorCanvas.Invalidate();
     }
 
@@ -208,8 +236,22 @@ internal sealed partial class EditorWindow : Window
         var region = ToPixelRect(Normalize(_dragStart.Value, _dragCurrent.Value));
         var start = new SKPoint((float)_dragStart.Value.X, (float)_dragStart.Value.Y);
         var end = new SKPoint((float)_dragCurrent.Value.X, (float)_dragCurrent.Value.Y);
+        var dragStart = _dragStart.Value;
+        var dragEnd = _dragCurrent.Value;
         _dragStart = null;
         _dragCurrent = null;
+
+        if (_tool == EditorInteractionTool.MoveSelection && _moveOriginSelection is { } moveOrigin)
+        {
+            var target = TranslateSelection(moveOrigin, dragStart, dragEnd);
+            _selection = _document.MoveRegion(moveOrigin, new SKPoint(target.Left, target.Top));
+            _moveOriginSelection = null;
+            ShowSelection(ToSkRect(_selection.Value));
+            UpdateSelectionActions();
+            EditorStatusText.Text = Localizer.Get("EditorMoveSelectionHint");
+            args.Handled = true;
+            return;
+        }
 
         if (_tool == EditorInteractionTool.Text)
         {
@@ -237,16 +279,10 @@ internal sealed partial class EditorWindow : Window
         {
             switch (_tool)
             {
-                case EditorInteractionTool.Crop:
-                    _document.Crop(region);
-                    ResizeCanvasToDocument();
-                    ClearSelection();
-                    SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
-                    break;
                 case EditorInteractionTool.Blur:
                     _document.Blur(region);
                     ClearSelection();
-                    SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+                    EditorStatusText.Text = Localizer.Get("EditorBlurHint");
                     break;
                 case EditorInteractionTool.Shape:
                     _document.AddShape(_shape, start, end, SelectedColor, 4f);
@@ -257,6 +293,7 @@ internal sealed partial class EditorWindow : Window
                     ShowSelection(Normalize(
                         new WinPoint(region.Left, region.Top),
                         new WinPoint(region.Right, region.Bottom)));
+                    UpdateSelectionActions();
                     break;
             }
         }
@@ -354,6 +391,7 @@ internal sealed partial class EditorWindow : Window
     {
         _selection = new SKRectI(0, 0, _document.Width, _document.Height);
         ShowSelection(SKRect.Create(_document.Width, _document.Height));
+        UpdateSelectionActions();
         SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectionAll"));
     }
 
@@ -371,8 +409,20 @@ internal sealed partial class EditorWindow : Window
     private void SelectButton_Click(object sender, RoutedEventArgs e) =>
         SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
 
-    private void CropButton_Click(object sender, RoutedEventArgs e) =>
-        SetTool(EditorInteractionTool.Crop, Localizer.Get("EditorCropHint"));
+    private void CropButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selection is not { } selection)
+        {
+            SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectFirst"));
+            return;
+        }
+
+        _document.Crop(selection);
+        ResizeCanvasToDocument();
+        SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+        EditorStatusText.Text = Localizer.Get("EditorTrimmed");
+        DispatcherQueue.TryEnqueue(FitDocumentToViewport);
+    }
 
     private async void ResizeButton_Click(object sender, RoutedEventArgs e)
     {
@@ -426,6 +476,70 @@ internal sealed partial class EditorWindow : Window
 
         await CopyBytesToClipboardAsync(_document.Cut(_selection.Value));
         ClearSelection();
+        SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+        EditorStatusText.Text = Localizer.Get("EditorCutToClipboard");
+    }
+
+    private void DeleteSelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selection is not { } selection)
+        {
+            EditorStatusText.Text = Localizer.Get("EditorSelectFirst");
+            return;
+        }
+
+        _document.DeleteRegion(selection);
+        ClearSelection();
+        SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+        EditorStatusText.Text = Localizer.Get("EditorSelectionDeleted");
+    }
+
+    private void MoveSelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selection is null)
+        {
+            MoveSelectionButton.IsChecked = false;
+            SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectFirst"));
+            return;
+        }
+
+        SetTool(EditorInteractionTool.MoveSelection, Localizer.Get("EditorMoveSelectionHint"));
+    }
+
+    private async void ResizeSelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selection is not { } selection)
+        {
+            EditorStatusText.Text = Localizer.Get("EditorSelectFirst");
+            return;
+        }
+
+        var width = new NumberBox { Header = Localizer.Get("Width"), Value = selection.Width, Minimum = 1 };
+        var height = new NumberBox { Header = Localizer.Get("Height"), Value = selection.Height, Minimum = 1 };
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(width);
+        panel.Children.Add(height);
+        var dialog = new ContentDialog
+        {
+            XamlRoot = Content.XamlRoot,
+            Title = Localizer.Get("EditorResizeSelection"),
+            Content = panel,
+            PrimaryButtonText = Localizer.Get("Apply"),
+            CloseButtonText = Localizer.Get("Cancel"),
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        _selection = _document.ResizeRegion(
+            selection,
+            Math.Max(1, (int)width.Value),
+            Math.Max(1, (int)height.Value));
+        ShowSelection(ToSkRect(_selection.Value));
+        UpdateSelectionActions();
+        EditorStatusText.Text = Localizer.Get("EditorSelectionResized");
     }
 
     private async void PasteButton_Click(object sender, RoutedEventArgs e) => await PasteFromClipboardAsync();
@@ -461,6 +575,7 @@ internal sealed partial class EditorWindow : Window
         SetTool(EditorInteractionTool.Text, Localizer.Get("EditorTextPlacementHint"));
         SetDocumentAcceleratorsEnabled(false);
         _ignoreInlineLostFocus = true;
+        InlineEditorCanvas.IsHitTestVisible = true;
         InlineTextEditor.Visibility = Visibility.Collapsed;
 
         if (element is not null)
@@ -515,6 +630,7 @@ internal sealed partial class EditorWindow : Window
         var id = _editingTextId;
         _ignoreInlineLostFocus = true;
         InlineTextEditor.Visibility = Visibility.Collapsed;
+        InlineEditorCanvas.IsHitTestVisible = false;
         _editingTextId = null;
         SetDocumentAcceleratorsEnabled(true);
 
@@ -541,7 +657,7 @@ internal sealed partial class EditorWindow : Window
         }
 
         _ignoreInlineLostFocus = false;
-        SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+        SetTool(EditorInteractionTool.Text, Localizer.Get("EditorTextPlacementHint"));
         EditorCanvas.Invalidate();
     }
 
@@ -549,11 +665,12 @@ internal sealed partial class EditorWindow : Window
     {
         _ignoreInlineLostFocus = true;
         InlineTextEditor.Visibility = Visibility.Collapsed;
+        InlineEditorCanvas.IsHitTestVisible = false;
         InlineTextEditor.Text = string.Empty;
         _editingTextId = null;
         SetDocumentAcceleratorsEnabled(true);
         _ignoreInlineLostFocus = false;
-        SetTool(EditorInteractionTool.Select, Localizer.Get("EditorSelectHint"));
+        SetTool(EditorInteractionTool.Text, Localizer.Get("EditorTextPlacementHint"));
     }
 
     private void InlineTextEditor_LostFocus(object sender, RoutedEventArgs e)
@@ -562,6 +679,26 @@ internal sealed partial class EditorWindow : Window
         {
             CommitInlineText();
         }
+    }
+
+    private void InlineEditorCanvas_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (InlineTextEditor.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        var point = e.GetCurrentPoint(InlineEditorCanvas).Position;
+        var left = Microsoft.UI.Xaml.Controls.Canvas.GetLeft(InlineTextEditor);
+        var top = Microsoft.UI.Xaml.Controls.Canvas.GetTop(InlineTextEditor);
+        if (point.X >= left && point.X <= left + InlineTextEditor.ActualWidth &&
+            point.Y >= top && point.Y <= top + InlineTextEditor.ActualHeight)
+        {
+            return;
+        }
+
+        CommitInlineText();
+        e.Handled = true;
     }
 
     private void InlineTextEditor_KeyDown(object sender, KeyRoutedEventArgs e)
@@ -622,7 +759,7 @@ internal sealed partial class EditorWindow : Window
         var dialog = new ContentDialog
         {
             XamlRoot = Content.XamlRoot,
-            Title = Localizer.Get("EditorWatermark"),
+            Title = Localizer.Get("EditorWatermarkDialogTitle"),
             Content = input,
             PrimaryButtonText = Localizer.Get("Apply"),
             CloseButtonText = Localizer.Get("Cancel"),
@@ -630,7 +767,7 @@ internal sealed partial class EditorWindow : Window
         };
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(input.Text))
         {
-            _document.AddWatermark(input.Text, SelectedFont, SelectedFontSize, SelectedColor, 115);
+            _document.AddWatermark(input.Text, SelectedFont, SelectedFontSize, SKColors.White, 170);
         }
     }
 
@@ -643,6 +780,17 @@ internal sealed partial class EditorWindow : Window
     private void ZoomInButton_Click(object sender, RoutedEventArgs e) => ChangeZoom(EditorScrollViewer.ZoomFactor * 1.25f);
 
     private void FitButton_Click(object sender, RoutedEventArgs e)
+    {
+        FitDocumentToViewport();
+    }
+
+    private void EditorScrollViewer_Loaded(object sender, RoutedEventArgs e)
+    {
+        EditorScrollViewer.Loaded -= EditorScrollViewer_Loaded;
+        DispatcherQueue.TryEnqueue(FitDocumentToViewport);
+    }
+
+    private void FitDocumentToViewport()
     {
         var widthFactor = (float)Math.Max(0.1, EditorScrollViewer.ActualWidth / _document.Width);
         var heightFactor = (float)Math.Max(0.1, EditorScrollViewer.ActualHeight / _document.Height);
@@ -684,9 +832,14 @@ internal sealed partial class EditorWindow : Window
 
     private void PropertiesPanelMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        var isVisible = PropertiesPanelMenuItem.IsChecked;
+        SetPropertiesPanelVisible(PropertiesPanelMenuItem.IsChecked);
+    }
+
+    private void SetPropertiesPanelVisible(bool isVisible)
+    {
+        PropertiesPanelMenuItem.IsChecked = isVisible;
         PropertiesPanel.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
-        PropertiesColumn.Width = isVisible ? new GridLength(292) : new GridLength(0);
+        PropertiesColumn.Width = isVisible ? new GridLength(240) : new GridLength(0);
     }
 
     private void SetShape(EditorShape shape)
@@ -699,13 +852,13 @@ internal sealed partial class EditorWindow : Window
     {
         _tool = tool;
         SelectButton.IsChecked = tool == EditorInteractionTool.Select;
-        CropButton.IsChecked = tool == EditorInteractionTool.Crop;
         BlurButton.IsChecked = tool == EditorInteractionTool.Blur;
         TextButton.IsChecked = tool == EditorInteractionTool.Text;
         ArrowButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Arrow;
         RectangleButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Rectangle;
         EllipseButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Ellipse;
         TriangleButton.IsChecked = tool == EditorInteractionTool.Shape && _shape == EditorShape.Triangle;
+        MoveSelectionButton.IsChecked = tool == EditorInteractionTool.MoveSelection;
         ColorPropertyGroup.Visibility = tool is EditorInteractionTool.Shape or EditorInteractionTool.Text
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -715,6 +868,8 @@ internal sealed partial class EditorWindow : Window
         NoPropertiesText.Visibility = tool is EditorInteractionTool.Shape or EditorInteractionTool.Text
             ? Visibility.Collapsed
             : Visibility.Visible;
+        SetPropertiesPanelVisible(tool is EditorInteractionTool.Shape or EditorInteractionTool.Text);
+        UpdateSelectionActions();
         EditorStatusText.Text = status;
     }
 
@@ -761,8 +916,43 @@ internal sealed partial class EditorWindow : Window
     private void ClearSelection()
     {
         _selection = null;
+        _moveOriginSelection = null;
         SelectionRectangle.Visibility = Visibility.Collapsed;
+        UpdateSelectionActions();
     }
+
+    private void UpdateSelectionActions()
+    {
+        var hasSelection = _selection is not null;
+        CropButton.IsEnabled = hasSelection;
+        SelectionActionsPanel.Visibility = hasSelection &&
+            _tool is EditorInteractionTool.Select or EditorInteractionTool.MoveSelection
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        if (!hasSelection)
+        {
+            MoveSelectionButton.IsChecked = false;
+        }
+    }
+
+    private SKRectI TranslateSelection(SKRectI origin, WinPoint start, WinPoint current)
+    {
+        var left = Math.Clamp(
+            origin.Left + (int)Math.Round(current.X - start.X),
+            0,
+            Math.Max(0, _document.Width - origin.Width));
+        var top = Math.Clamp(
+            origin.Top + (int)Math.Round(current.Y - start.Y),
+            0,
+            Math.Max(0, _document.Height - origin.Height));
+        return new SKRectI(left, top, left + origin.Width, top + origin.Height);
+    }
+
+    private static SKRect ToSkRect(SKRectI rectangle) => new(
+        rectangle.Left,
+        rectangle.Top,
+        rectangle.Right,
+        rectangle.Bottom);
 
     private WinPoint Clamp(WinPoint point) => new(
         Math.Clamp(point.X, 0, _document.Width),
@@ -878,6 +1068,14 @@ internal sealed partial class EditorWindow : Window
         args.Handled = true;
     }
 
+    private void DeleteSelectionAccelerator_Invoked(
+        KeyboardAccelerator sender,
+        KeyboardAcceleratorInvokedEventArgs args)
+    {
+        DeleteSelectionButton_Click(sender, new RoutedEventArgs());
+        args.Handled = true;
+    }
+
     private void ActualSizeAccelerator_Invoked(
         KeyboardAccelerator sender,
         KeyboardAcceleratorInvokedEventArgs args)
@@ -895,9 +1093,9 @@ internal sealed partial class EditorWindow : Window
     private enum EditorInteractionTool
     {
         Select,
-        Crop,
         Blur,
         Shape,
         Text,
+        MoveSelection,
     }
 }
