@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.IO.Compression;
 using System.Text;
+using BetterCapture.Core.Storage;
 using BetterCapture.Graphics.Images;
 
 namespace BetterCapture.Graphics.Encoding;
@@ -17,30 +18,14 @@ public static class PngWriter
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(image);
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        var temporaryPath = path + ".partial";
-
-        try
+        AtomicFileWriter.Write(path, output =>
         {
-            using (var output = new FileStream(temporaryPath, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                output.Write(Signature);
-                WriteHeader(output, image.Width, image.Height);
-                WriteTextMetadata(output, textMetadata);
-                WritePixels(output, image);
-                WriteChunk(output, "IEND", ReadOnlySpan<byte>.Empty);
-                output.Flush(flushToDisk: true);
-            }
-
-            File.Move(temporaryPath, path, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-            {
-                File.Delete(temporaryPath);
-            }
-        }
+            output.Write(Signature);
+            WriteHeader(output, image.Width, image.Height);
+            WriteTextMetadata(output, textMetadata);
+            WritePixels(output, image);
+            WriteChunk(output, "IEND", ReadOnlySpan<byte>.Empty);
+        });
     }
 
     private static void WriteTextMetadata(

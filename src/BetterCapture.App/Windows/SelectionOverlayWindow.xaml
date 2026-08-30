@@ -30,6 +30,13 @@
                        StrokeThickness="2"
                        Visibility="Collapsed" />
 
+            <Rectangle x:Name="ScrollViewportRectangle"
+                       IsHitTestVisible="False"
+                       Stroke="#FFFF9800"
+                       StrokeThickness="2"
+                       StrokeDashArray="6,3"
+                       Visibility="Collapsed" />
+
             <Border x:Name="DimensionBadge"
                     MaxWidth="680"
                     Padding="9,5"
@@ -97,6 +104,8 @@
                     BorderThickness="2"
                     CornerRadius="28"
                     Click="VerticalScrollButton_Click"
+                    PointerEntered="VerticalScrollButton_PointerEntered"
+                    PointerExited="VerticalScrollButton_PointerExited"
                     IsTabStop="False"
                     ToolTipService.ToolTip="Scrolling capture"
                     Visibility="Collapsed">

@@ -25,7 +25,18 @@
   <data name="Language" xml:space="preserve"><value>Language</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="StartupMenuItem" xml:space="preserve"><value>Start with Windows</value></data>
-  <data name="MinimizeToTrayMenuItem" xml:space="preserve"><value>Minimize to notification area</value></data>
+  <data name="MinimizeToTrayMenuItem" xml:space="preserve"><value>Close button minimizes to tray</value></data>
+  <data name="ExitApplicationMenuItem" xml:space="preserve"><value>Exit BetterCapture completely</value></data>
+  <data name="CheckUpdatesMenuItem" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="CheckingForUpdates" xml:space="preserve"><value>Checking GitHub for updates…</value></data>
+  <data name="UpdateAvailableTitle" xml:space="preserve"><value>BetterCapture {0} is available</value></data>
+  <data name="UpdateAvailableMessage" xml:space="preserve"><value>Version {0} · {1:F1} MiB&#x0A;&#x0A;{2}</value></data>
+  <data name="DownloadAndInstallUpdate" xml:space="preserve"><value>Download and install</value></data>
+  <data name="Later" xml:space="preserve"><value>Later</value></data>
+  <data name="NoUpdateAvailableTitle" xml:space="preserve"><value>BetterCapture is up to date</value></data>
+  <data name="NoUpdateAvailableMessage" xml:space="preserve"><value>Version {0} is the latest available version.</value></data>
+  <data name="DownloadingUpdate" xml:space="preserve"><value>Downloading and verifying BetterCapture {0}…</value></data>
+  <data name="UpdateFailedTitle" xml:space="preserve"><value>Update failed</value></data>
   <data name="TraySettingFailedTitle" xml:space="preserve"><value>Notification-area setting could not be changed</value></data>
   <data name="TrayOpen" xml:space="preserve"><value>Open BetterCapture</value></data>
   <data name="TrayCapture" xml:space="preserve"><value>Take screenshot</value></data>
@@ -69,6 +80,10 @@
   <data name="PrintScreenReservedMessage" xml:space="preserve"><value>Global shortcut registration failed (Win32 {0}). Turn off ‘Use the Print Screen key to open screen capture’ in Windows keyboard settings.</value></data>
   <data name="HdrCaptureSaved" xml:space="preserve"><value>HDR capture saved</value></data>
   <data name="CaptureSaved" xml:space="preserve"><value>Capture saved</value></data>
+  <data name="CaptureRecovered" xml:space="preserve"><value>Capture saved to recovery folder</value></data>
+  <data name="CaptureRecoveryMessage" xml:space="preserve"><value>The library location was unavailable. Your capture was preserved at {0}. Original error: {1}</value></data>
+  <data name="CaptureRecoveryTrayMessage" xml:space="preserve"><value>The library was unavailable. The capture was preserved at {0}</value></data>
+  <data name="UnknownError" xml:space="preserve"><value>Unknown storage error</value></data>
   <data name="CaptureResultMessage" xml:space="preserve"><value>{0} · {1} × {2} · SDR white {3:F0} nits · PNG copied to clipboard</value></data>
   <data name="SavedStatus" xml:space="preserve"><value>Saved {0}</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>

@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Diagnostics;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -29,17 +30,20 @@ internal sealed partial class SelectionOverlayWindow : Window
     private readonly TaskCompletionSource<SmartCaptureSelection?> _selectionSource = new(
         TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly WriteableBitmap _loupeBitmap = new(LoupeSampleSize, LoupeSampleSize);
+    private readonly byte[] _loupePixels = new byte[LoupeSampleSize * LoupeSampleSize * 4];
+    private readonly SemaphoreSlim _scrollProbeGate = new(1, 1);
     private readonly Brush _normalSelectionStroke = new SolidColorBrush(Microsoft.UI.Colors.White);
     private readonly Brush _protectedSelectionStroke = new SolidColorBrush(
         Microsoft.UI.ColorHelper.FromArgb(255, 255, 200, 61));
-    private readonly Brush _scrollingSelectionStroke = new SolidColorBrush(
-        Microsoft.UI.ColorHelper.FromArgb(255, 255, 152, 0));
     private readonly Dictionary<nint, PixelRect?> _scrollableViewports = [];
     private readonly string _defaultPrimaryText;
     private readonly string _defaultSecondaryText;
     private WinPoint? _dragStart;
     private CaptureCandidate? _pressedCandidate;
     private CaptureCandidate? _hoverCandidate;
+    private PixelRect? _activeScrollRegion;
+    private CancellationTokenSource? _scrollProbeCancellation;
+    private long _lastLoupeTimestamp;
     private bool _isDragging;
 
     internal SelectionOverlayWindow(
@@ -92,6 +96,9 @@ internal sealed partial class SelectionOverlayWindow : Window
 
     private void OnClosed(object sender, WindowEventArgs args)
     {
+        _scrollProbeCancellation?.Cancel();
+        _scrollProbeCancellation?.Dispose();
+        _scrollProbeCancellation = null;
         _selectionSource.TrySetResult(null);
     }
 
@@ -132,7 +139,12 @@ internal sealed partial class SelectionOverlayWindow : Window
     private void InteractionCanvas_PointerMoved(object sender, PointerRoutedEventArgs args)
     {
         var position = args.GetCurrentPoint(InteractionCanvas).Position;
-        UpdateLoupe(position);
+        var now = Stopwatch.GetTimestamp();
+        if (now - _lastLoupeTimestamp >= Stopwatch.Frequency / 60)
+        {
+            _lastLoupeTimestamp = now;
+            UpdateLoupe(position);
+        }
 
         if (_dragStart is not null)
         {
@@ -143,6 +155,7 @@ internal sealed partial class SelectionOverlayWindow : Window
                 _isDragging = true;
                 InstructionBar.Visibility = Visibility.Collapsed;
                 VerticalScrollButton.Visibility = Visibility.Collapsed;
+                ScrollViewportRectangle.Visibility = Visibility.Collapsed;
             }
 
             if (_isDragging)
@@ -241,6 +254,7 @@ internal sealed partial class SelectionOverlayWindow : Window
         var candidate = FindCandidate(position);
         if (candidate is null)
         {
+            CancelPendingScrollProbe();
             _hoverCandidate = null;
             VerticalScrollButton.Visibility = Visibility.Collapsed;
             ShowDefaultInstruction();
@@ -252,19 +266,94 @@ internal sealed partial class SelectionOverlayWindow : Window
 
         if (candidate.IsCaptureProtected)
         {
+            CancelPendingScrollProbe();
             _hoverCandidate = candidate;
             VerticalScrollButton.Visibility = Visibility.Collapsed;
             ShowProtectedCandidate(candidate);
             return;
         }
 
+        var candidateChanged = _hoverCandidate?.WindowHandle != candidate.WindowHandle;
         _hoverCandidate = candidate;
         ShowDefaultInstruction();
-        var canScroll = TryGetScrollableViewport(candidate, out var scrollViewport);
-        ShowPixelRegion(
-            canScroll ? ToMonitorRegion(scrollViewport) : candidate.Region,
-            candidate.Source.Description,
-            isScrollable: canScroll);
+        if (_scrollableViewports.TryGetValue(candidate.WindowHandle, out var cachedViewport))
+        {
+            ShowPixelRegion(
+                candidate.Region,
+                candidate.Source.Description,
+                scrollingRegion: cachedViewport is { } viewport
+                    ? ToMonitorRegion(viewport)
+                    : null);
+            return;
+        }
+
+        // Always paint the window border immediately. Scroll detection is an
+        // optional enhancement and must never delay normal window targeting.
+        ShowPixelRegion(candidate.Region, candidate.Source.Description);
+        if (candidateChanged)
+        {
+            ScheduleScrollProbe(candidate);
+        }
+    }
+
+    private void ScheduleScrollProbe(CaptureCandidate candidate)
+    {
+        CancelPendingScrollProbe();
+        _scrollProbeCancellation = new CancellationTokenSource();
+        _ = ProbeScrollableViewportAsync(candidate, _scrollProbeCancellation.Token);
+    }
+
+    private void CancelPendingScrollProbe()
+    {
+        _scrollProbeCancellation?.Cancel();
+        _scrollProbeCancellation?.Dispose();
+        _scrollProbeCancellation = null;
+    }
+
+    private async Task ProbeScrollableViewportAsync(
+        CaptureCandidate candidate,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(140, cancellationToken);
+            await _scrollProbeGate.WaitAsync(cancellationToken);
+            PixelRect viewport = default;
+            bool canScroll;
+            try
+            {
+                canScroll = await Task.Run(() =>
+                    WindowScrollService.TryGetScrollableViewport(
+                        candidate.WindowHandle,
+                        candidate.Source.DesktopBounds,
+                        out viewport));
+            }
+            finally
+            {
+                _scrollProbeGate.Release();
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                _scrollableViewports[candidate.WindowHandle] = canScroll ? viewport : null;
+                if (_hoverCandidate?.WindowHandle == candidate.WindowHandle)
+                {
+                    ShowPixelRegion(
+                        candidate.Region,
+                        candidate.Source.Description,
+                        scrollingRegion: canScroll ? ToMonitorRegion(viewport) : null);
+                }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     private CaptureCandidate? FindCandidate(WinPoint position)
@@ -325,6 +414,8 @@ internal sealed partial class SelectionOverlayWindow : Window
         CanvasPosition(SelectionRectangle, selection.X, selection.Y);
         SelectionRectangle.Width = selection.Width;
         SelectionRectangle.Height = selection.Height;
+        ScrollViewportRectangle.Visibility = Visibility.Collapsed;
+        VerticalScrollButton.Visibility = Visibility.Collapsed;
         UpdateShade(selection);
 
         var pixelRegion = ToPixelRegion(start, current);
@@ -343,7 +434,7 @@ internal sealed partial class SelectionOverlayWindow : Window
         PixelRect region,
         string label,
         bool isCaptureProtected = false,
-        bool isScrollable = false)
+        PixelRect? scrollingRegion = null)
     {
         if (InteractionCanvas.ActualWidth <= 0 || InteractionCanvas.ActualHeight <= 0)
         {
@@ -360,12 +451,8 @@ internal sealed partial class SelectionOverlayWindow : Window
         SelectionRectangle.Visibility = Visibility.Visible;
         SelectionRectangle.Stroke = isCaptureProtected
             ? _protectedSelectionStroke
-            : isScrollable
-                ? _scrollingSelectionStroke
-                : _normalSelectionStroke;
-        SelectionRectangle.StrokeDashArray = isScrollable
-            ? new DoubleCollection { 6, 3 }
-            : null;
+            : _normalSelectionStroke;
+        SelectionRectangle.StrokeDashArray = null;
         DimensionBadge.Visibility = Visibility.Visible;
         CanvasPosition(SelectionRectangle, selection.X, selection.Y);
         SelectionRectangle.Width = selection.Width;
@@ -382,24 +469,57 @@ internal sealed partial class SelectionOverlayWindow : Window
             Math.Clamp(selection.X, 8, Math.Max(8, InteractionCanvas.ActualWidth - DimensionBadge.DesiredSize.Width - 8)),
             Math.Clamp(badgeY, 8, Math.Max(8, InteractionCanvas.ActualHeight - DimensionBadge.DesiredSize.Height - 8)));
 
-        if (isScrollable)
+        if (scrollingRegion is { } scrollRegion && !scrollRegion.IsEmpty)
         {
+            _activeScrollRegion = scrollRegion;
+            var scrollSelection = new WinRect(
+                scrollRegion.X * scaleX,
+                scrollRegion.Y * scaleY,
+                scrollRegion.Width * scaleX,
+                scrollRegion.Height * scaleY);
+            ScrollViewportRectangle.Visibility = Visibility.Collapsed;
             VerticalScrollButton.Visibility = Visibility.Visible;
             CanvasPosition(
                 VerticalScrollButton,
                 Math.Clamp(
-                    selection.X + ((selection.Width - VerticalScrollButton.Width) / 2),
+                    scrollSelection.X + ((scrollSelection.Width - VerticalScrollButton.Width) / 2),
                     8,
                     Math.Max(8, InteractionCanvas.ActualWidth - VerticalScrollButton.Width - 8)),
                 Math.Clamp(
-                    selection.Bottom - VerticalScrollButton.Height - 18,
+                    scrollSelection.Bottom - VerticalScrollButton.Height - 18,
                     8,
                     Math.Max(8, InteractionCanvas.ActualHeight - VerticalScrollButton.Height - 8)));
         }
         else
         {
+            _activeScrollRegion = null;
+            ScrollViewportRectangle.Visibility = Visibility.Collapsed;
             VerticalScrollButton.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private void VerticalScrollButton_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (_activeScrollRegion is not { } scrollRegion ||
+            InteractionCanvas.ActualWidth <= 0 || InteractionCanvas.ActualHeight <= 0)
+        {
+            return;
+        }
+
+        var scaleX = InteractionCanvas.ActualWidth / _preview.Width;
+        var scaleY = InteractionCanvas.ActualHeight / _preview.Height;
+        CanvasPosition(
+            ScrollViewportRectangle,
+            scrollRegion.X * scaleX,
+            scrollRegion.Y * scaleY);
+        ScrollViewportRectangle.Width = scrollRegion.Width * scaleX;
+        ScrollViewportRectangle.Height = scrollRegion.Height * scaleY;
+        ScrollViewportRectangle.Visibility = Visibility.Visible;
+    }
+
+    private void VerticalScrollButton_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        ScrollViewportRectangle.Visibility = Visibility.Collapsed;
     }
 
     private bool TryGetScrollableViewport(CaptureCandidate candidate, out PixelRect viewport)
@@ -518,7 +638,6 @@ internal sealed partial class SelectionOverlayWindow : Window
             (int)Math.Floor(position.Y * _preview.Height / InteractionCanvas.ActualHeight),
             0,
             _preview.Height - 1);
-        var sample = new byte[LoupeSampleSize * LoupeSampleSize * 4];
         var radius = LoupeSampleSize / 2;
 
         for (var y = 0; y < LoupeSampleSize; y++)
@@ -529,11 +648,11 @@ internal sealed partial class SelectionOverlayWindow : Window
                 var sourceX = Math.Clamp(pixelX + x - radius, 0, _preview.Width - 1);
                 var sourceOffset = ((sourceY * _preview.Width) + sourceX) * 4;
                 var destinationOffset = ((y * LoupeSampleSize) + x) * 4;
-                _preview.Pixels.AsSpan(sourceOffset, 4).CopyTo(sample.AsSpan(destinationOffset, 4));
+                _preview.Pixels.AsSpan(sourceOffset, 4).CopyTo(_loupePixels.AsSpan(destinationOffset, 4));
             }
         }
 
-        WriteBitmap(_loupeBitmap, sample);
+        WriteBitmap(_loupeBitmap, _loupePixels);
         CoordinateText.Text = $"{pixelX}, {pixelY}  ·  8×";
 
         var left = position.X + 26;

@@ -77,6 +77,13 @@
                                 <MenuFlyoutItem x:Name="ShortcutMenuItem"
                                                 Text="Capture shortcut: Print Screen"
                                                 Click="ShortcutMenuItem_Click" />
+                                <MenuFlyoutItem x:Name="CheckUpdatesMenuItem"
+                                                Text="Check for updates"
+                                                Click="CheckUpdatesMenuItem_Click" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem x:Name="ExitApplicationMenuItem"
+                                                Text="Exit BetterCapture"
+                                                Click="ExitApplicationMenuItem_Click" />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>

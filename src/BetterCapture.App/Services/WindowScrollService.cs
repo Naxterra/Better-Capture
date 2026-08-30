@@ -13,7 +13,14 @@ internal static class WindowScrollService
     private const double ScrollPatternNoScroll = -1d;
     private const int ScrollPatternId = 10004;
     private const int IsScrollPatternAvailablePropertyId = 30034;
-    private static readonly IUIAutomation Automation = new CUIAutomation8Class();
+    [ThreadStatic]
+    private static IUIAutomation? _threadAutomation;
+
+    // UI Automation COM objects are apartment-bound. Keeping one instance per
+    // worker/UI thread avoids cross-apartment marshaling and lets scroll probes
+    // run away from the selector's pointer event loop.
+    private static IUIAutomation Automation =>
+        _threadAutomation ??= new CUIAutomation8Class();
 
     internal static bool TryGetScrollableViewport(
         nint windowHandle,
