@@ -10,16 +10,22 @@ internal sealed class TrayIconService : IDisposable
     private const uint CallbackMessage = 0x8000 + 0x42;
     private const uint WindowMessageSize = 0x0005;
     private const uint WindowMessageNull = 0x0000;
+    private const uint WindowMessageSystemCommand = 0x0112;
     private const uint WindowMessageLeftButtonUp = 0x0202;
     private const uint WindowMessageLeftButtonDoubleClick = 0x0203;
     private const uint WindowMessageRightButtonUp = 0x0205;
     private const nuint SizeMinimized = 1;
+    private const nuint SystemCommandMask = 0xfff0;
+    private const nuint SystemCommandClose = 0xf060;
     private const nuint SubclassId = 0x42435459;
     private const uint NotifyIconAdd = 0x00000000;
+    private const uint NotifyIconModify = 0x00000001;
     private const uint NotifyIconDelete = 0x00000002;
     private const uint NotifyIconMessage = 0x00000001;
     private const uint NotifyIconIcon = 0x00000002;
     private const uint NotifyIconTip = 0x00000004;
+    private const uint NotifyIconInfo = 0x00000010;
+    private const uint NotifyInfoWarning = 0x00000002;
     private const uint ImageIcon = 1;
     private const uint LoadResourceFromFile = 0x00000010;
     private const uint MenuString = 0x00000000;
@@ -75,6 +81,8 @@ internal sealed class TrayIconService : IDisposable
 
     internal event EventHandler? Minimized;
 
+    internal event EventHandler? UserCloseRequested;
+
     internal void SetEnabled(bool enabled)
     {
         _enabled = enabled;
@@ -86,6 +94,29 @@ internal sealed class TrayIconService : IDisposable
         {
             RemoveIcon();
         }
+    }
+
+    internal void ShowWarning(string title, string message)
+    {
+        if (!_enabled)
+        {
+            SetEnabled(true);
+        }
+
+        if (!_iconAdded)
+        {
+            return;
+        }
+
+        _iconData.Flags = NotifyIconMessage | NotifyIconIcon | NotifyIconTip | NotifyIconInfo;
+        _iconData.InfoTitle = Truncate(title, 63);
+        _iconData.Info = Truncate(message, 255);
+        _iconData.InfoFlags = NotifyInfoWarning;
+        ShellNotifyIcon(NotifyIconModify, ref _iconData);
+        _iconData.Flags = NotifyIconMessage | NotifyIconIcon | NotifyIconTip;
+        _iconData.InfoTitle = string.Empty;
+        _iconData.Info = string.Empty;
+        _iconData.InfoFlags = 0;
     }
 
     public void Dispose()
@@ -126,6 +157,11 @@ internal sealed class TrayIconService : IDisposable
         _iconAdded = false;
     }
 
+    private static string Truncate(string value, int maximumLength) =>
+        string.IsNullOrEmpty(value) || value.Length <= maximumLength
+            ? value ?? string.Empty
+            : value[..maximumLength];
+
     private nint WindowSubclass(
         nint windowHandle,
         uint message,
@@ -134,7 +170,12 @@ internal sealed class TrayIconService : IDisposable
         nuint subclassId,
         nuint referenceData)
     {
-        if (message == WindowMessageSize && wordParameter == SizeMinimized)
+        if (message == WindowMessageSystemCommand &&
+            (wordParameter & SystemCommandMask) == SystemCommandClose)
+        {
+            UserCloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+        else if (message == WindowMessageSize && wordParameter == SizeMinimized)
         {
             Minimized?.Invoke(this, EventArgs.Empty);
         }

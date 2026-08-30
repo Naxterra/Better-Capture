@@ -1,6 +1,7 @@
 using System.Text;
 using BetterCapture.Core.Capture;
 using BetterCapture.Core.Geometry;
+using BetterCapture.Core.Storage;
 
 namespace BetterCapture.Graphics.Encoding;
 
@@ -22,31 +23,15 @@ public static class OpenExrWriter
             throw new ArgumentException("The output region does not intersect the frame.", nameof(region));
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        var temporaryPath = path + ".partial";
-
-        try
+        AtomicFileWriter.Write(path, output =>
         {
-            using (var output = new FileStream(temporaryPath, FileMode.Create, FileAccess.Write, FileShare.None))
-            using (var writer = new BinaryWriter(output, System.Text.Encoding.ASCII, leaveOpen: true))
-            {
-                writer.Write(Magic);
-                writer.Write(Version);
-                WriteHeader(writer, sourceRegion.Width, sourceRegion.Height, frame.Metadata.DisplayMaxLuminanceNits);
-                WriteScanlines(writer, frame, sourceRegion);
-                writer.Flush();
-                output.Flush(flushToDisk: true);
-            }
-
-            File.Move(temporaryPath, path, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-            {
-                File.Delete(temporaryPath);
-            }
-        }
+            using var writer = new BinaryWriter(output, System.Text.Encoding.ASCII, leaveOpen: true);
+            writer.Write(Magic);
+            writer.Write(Version);
+            WriteHeader(writer, sourceRegion.Width, sourceRegion.Height, frame.Metadata.DisplayMaxLuminanceNits);
+            WriteScanlines(writer, frame, sourceRegion);
+            writer.Flush();
+        });
     }
 
     private static void WriteHeader(BinaryWriter writer, int width, int height, float? displayMaxLuminanceNits)

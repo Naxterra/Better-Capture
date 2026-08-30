@@ -1,5 +1,6 @@
 using BetterCapture.Editor.Annotations;
 using SkiaSharp;
+using BetterCapture.Core.Storage;
 
 namespace BetterCapture.Editor;
 
@@ -384,10 +385,9 @@ public sealed class EditorDocument : IDisposable
     public void Save(string? path = null)
     {
         var destination = Path.GetFullPath(path ?? SourcePath);
-        var temporaryPath = destination + ".partial";
         using var flattened = CreateFlattenedBitmap();
-        File.WriteAllBytes(temporaryPath, EncodePng(flattened));
-        File.Move(temporaryPath, destination, overwrite: true);
+        var png = EncodePng(flattened);
+        AtomicFileWriter.Write(destination, output => output.Write(png));
     }
 
     public void Dispose()

@@ -74,6 +74,50 @@ internal sealed class CaptureWorkflow
     {
         var analysis = ScRgbToneMapper.Analyze(selectedFrame);
         var paths = FindAvailablePaths(selectedFrame.Metadata.CapturedAt);
+        try
+        {
+            return await SaveFrameToPathsAsync(
+                paths,
+                selectedFrame,
+                source,
+                capturedDesktopBounds,
+                analysis,
+                sdrWhiteLevelNits,
+                saveHdrMaster,
+                usedRecoveryLocation: false,
+                originalSaveError: null);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            CaptureTrace.Write($"library save failed; using recovery location · {exception.Message}");
+            var recoveryRoot = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                "BetterCapture Recovery");
+            var recoveryPaths = FindAvailablePaths(selectedFrame.Metadata.CapturedAt, recoveryRoot);
+            return await SaveFrameToPathsAsync(
+                recoveryPaths,
+                selectedFrame,
+                source,
+                capturedDesktopBounds,
+                analysis,
+                sdrWhiteLevelNits,
+                saveHdrMaster,
+                usedRecoveryLocation: true,
+                originalSaveError: exception.Message);
+        }
+    }
+
+    private static async Task<CaptureSaveResult> SaveFrameToPathsAsync(
+        CapturePaths paths,
+        ScRgbFrame selectedFrame,
+        CaptureSourceInfo source,
+        PixelRect capturedDesktopBounds,
+        HdrAnalysis analysis,
+        float sdrWhiteLevelNits,
+        bool saveHdrMaster,
+        bool usedRecoveryLocation,
+        string? originalSaveError)
+    {
         Directory.CreateDirectory(paths.Directory);
         var embeddedMetadata = new Dictionary<string, string>
         {
@@ -113,7 +157,9 @@ internal sealed class CaptureWorkflow
             selectedFrame.Metadata,
             sdrWhiteLevelNits,
             source,
-            paths.MetadataPath);
+            paths.MetadataPath,
+            usedRecoveryLocation,
+            originalSaveError);
     }
 
     internal async Task OpenOutputFolderAsync()
@@ -194,16 +240,14 @@ internal sealed class CaptureWorkflow
             DroppedFrameCount: result.DroppedFrameCount,
             VideoFile: Path.GetFileName(result.VideoPath));
         var json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
-        var temporaryPath = result.MetadataPath + ".partial";
-        await File.WriteAllTextAsync(temporaryPath, json);
-        File.Move(temporaryPath, result.MetadataPath, overwrite: true);
+        await AtomicFileWriter.WriteAllTextAsync(result.MetadataPath, json);
     }
 
-    private CapturePaths FindAvailablePaths(DateTimeOffset capturedAt)
+    private CapturePaths FindAvailablePaths(DateTimeOffset capturedAt, string? root = null)
     {
         for (var offset = 0; offset < 1000; offset++)
         {
-            var paths = CapturePathPlanner.Create(OutputRoot, capturedAt.AddMilliseconds(offset));
+            var paths = CapturePathPlanner.Create(root ?? OutputRoot, capturedAt.AddMilliseconds(offset));
             if (!File.Exists(paths.SdrPngPath) &&
                 !File.Exists(paths.HdrExrPath) &&
                 !File.Exists(paths.MetadataPath))
@@ -255,9 +299,7 @@ internal sealed class CaptureWorkflow
             PngFile: Path.GetFileName(paths.SdrPngPath),
             HdrFile: hasHdrMaster ? Path.GetFileName(paths.HdrExrPath) : null);
         var json = JsonSerializer.Serialize(entry, new JsonSerializerOptions { WriteIndented = true });
-        var temporaryPath = paths.MetadataPath + ".partial";
-        await File.WriteAllTextAsync(temporaryPath, json);
-        File.Move(temporaryPath, paths.MetadataPath, overwrite: true);
+        await AtomicFileWriter.WriteAllTextAsync(paths.MetadataPath, json);
     }
 }
 
@@ -313,4 +355,6 @@ internal sealed record CaptureSaveResult(
     CaptureFrameMetadata Metadata,
     float SdrWhiteLevelNits,
     CaptureSourceInfo Source,
-    string MetadataPath);
+    string MetadataPath,
+    bool UsedRecoveryLocation,
+    string? OriginalSaveError);

@@ -20,6 +20,7 @@ public sealed partial class MainWindow : Window
 
     private readonly WindowsGraphicsCaptureService _captureService = new();
     private readonly AppSettingsService _settingsService = new();
+    private readonly UpdateService _updateService = new();
     private readonly CaptureWorkflow _workflow;
     private readonly SemaphoreSlim _captureGate = new(1, 1);
     private readonly List<EditorWindow> _editorWindows = [];
@@ -32,6 +33,7 @@ public sealed partial class MainWindow : Window
     private int _hotkeyErrorCode;
     private bool _isExiting;
     private bool _contentResizePending;
+    private bool _userRequestedClose;
     private MainPage? _page;
     private RecordingControlWindow? _recordingControl;
 
@@ -53,6 +55,7 @@ public sealed partial class MainWindow : Window
         AttachMainPage((MainPage)RootFrame.Content);
 
         Activated += OnActivated;
+        AppWindow.Closing += OnAppWindowClosing;
         Closed += OnClosed;
     }
 
@@ -128,7 +131,11 @@ public sealed partial class MainWindow : Window
             _trayIconService.CaptureRequested += OnTrayCaptureRequested;
             _trayIconService.ExitRequested += OnTrayExitRequested;
             _trayIconService.Minimized += OnTrayMinimized;
-            _trayIconService.SetEnabled(_minimizeToTray);
+            _trayIconService.UserCloseRequested += OnUserCloseRequested;
+            // The tray icon is the persistent controller entry point. The user
+            // preference controls minimize behavior, not whether the app can be
+            // reached after a silent capture.
+            _trayIconService.SetEnabled(true);
         }
     }
 
@@ -210,8 +217,7 @@ public sealed partial class MainWindow : Window
                     await _libraryWindow.RefreshAsync();
                 }
                 _recordingControl = null;
-                ShowDashboard();
-                _page?.ShowVideo(recordingResult);
+                HideDashboardToTray();
             }
             else
             {
@@ -224,18 +230,14 @@ public sealed partial class MainWindow : Window
         catch (Exception exception)
         {
             CaptureTrace.Write($"capture failed · {exception.GetType().Name} · {exception.Message}");
-            ShowDashboard();
-            if (_page is not null)
-            {
-                await _page.ShowErrorAsync(Localizer.Get("CaptureFailedTitle"), exception.Message);
-            }
+            _trayIconService?.ShowWarning(Localizer.Get("CaptureFailedTitle"), exception.Message);
         }
         finally
         {
             CaptureTrace.Write("capture workflow finished");
             overlay?.Close();
             _recordingControl = null;
-            ShowDashboard();
+            HideDashboardToTray();
             _page?.SetReady();
             _captureGate.Release();
         }
@@ -355,9 +357,12 @@ public sealed partial class MainWindow : Window
             await _libraryWindow.RefreshAsync();
         }
 
-        ShowDashboard();
-        _page?.ShowCapture(saved);
-        OpenEditor(saved.PngPath);
+        if (saved.UsedRecoveryLocation)
+        {
+            _trayIconService?.ShowWarning(
+                Localizer.Get("CaptureRecovered"),
+                Localizer.Format("CaptureRecoveryTrayMessage", saved.PngPath));
+        }
     }
 
     private void ShowDashboard()
@@ -372,6 +377,12 @@ public sealed partial class MainWindow : Window
         Activate();
     }
 
+    private void HideDashboardToTray()
+    {
+        _trayIconService?.SetEnabled(true);
+        AppWindow.Hide();
+    }
+
     internal void ActivateFromSecondaryInstance() => ShowDashboard();
 
     internal void StartInTray()
@@ -380,6 +391,24 @@ public sealed partial class MainWindow : Window
         {
             AppWindow.Hide();
         }
+    }
+
+    private void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        var userRequestedClose = _userRequestedClose;
+        _userRequestedClose = false;
+        if (_isExiting || !_minimizeToTray || !userRequestedClose)
+        {
+            return;
+        }
+
+        args.Cancel = true;
+        HideDashboardToTray();
+    }
+
+    private void OnUserCloseRequested(object? sender, EventArgs args)
+    {
+        _userRequestedClose = true;
     }
 
     private void OpenEditor(string imagePath)
@@ -467,6 +496,8 @@ public sealed partial class MainWindow : Window
         _page.MinimizeToTraySettingChanged = ChangeMinimizeToTraySettingAsync;
         _page.LanguageSettingChanged = ChangeLanguageAsync;
         _page.ChangeHotkeyRequested = ChangeHotkeyAsync;
+        _page.CheckUpdatesRequested = CheckForUpdatesAsync;
+        _page.ExitApplicationRequested = ExitApplication;
         _page.SetOutputFolder(_workflow.OutputRoot);
         _page.SetStartupEnabled(StartupRegistrationService.IsEnabled);
         _page.SetMinimizeToTrayEnabled(_minimizeToTray);
@@ -510,13 +541,56 @@ public sealed partial class MainWindow : Window
                 errorCode));
     }
 
+    private async Task CheckForUpdatesAsync()
+    {
+        if (_page is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _page.SetBusy(Localizer.Get("CheckingForUpdates"));
+            var currentVersion = typeof(MainWindow).Assembly.GetName().Version ?? new Version(1, 0, 0);
+            var update = await _updateService.CheckAsync(currentVersion);
+            _page.SetReady();
+            if (update is null)
+            {
+                await _page.ShowUpdateMessageAsync(
+                    Localizer.Get("NoUpdateAvailableTitle"),
+                    Localizer.Format("NoUpdateAvailableMessage", currentVersion.ToString(3)));
+                return;
+            }
+
+            if (!await _page.PromptUpdateAsync(update))
+            {
+                return;
+            }
+
+            _page.SetBusy(Localizer.Format("DownloadingUpdate", update.Version.ToString(3)));
+            var installerPath = await _updateService.DownloadAndVerifyAsync(update);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(installerPath)
+            {
+                UseShellExecute = true,
+            });
+            ExitApplication();
+        }
+        catch (Exception exception)
+        {
+            _page.SetReady();
+            await _page.ShowUpdateMessageAsync(
+                Localizer.Get("UpdateFailedTitle"),
+                exception.Message);
+        }
+    }
+
     private async Task<bool> ChangeMinimizeToTraySettingAsync(bool enabled)
     {
         try
         {
             TrayPreferenceService.Save(enabled);
             _minimizeToTray = enabled;
-            _trayIconService?.SetEnabled(enabled);
+            _trayIconService?.SetEnabled(true);
         }
         catch (Exception exception)
         {
@@ -592,15 +666,19 @@ public sealed partial class MainWindow : Window
             UseShellExecute = true,
         });
         _libraryWindow?.Close();
+        _isExiting = true;
         Close();
     }
 
     private void OnClosed(object sender, WindowEventArgs args)
     {
         _isExiting = true;
+        AppWindow.Closing -= OnAppWindowClosing;
         if (_page is not null)
         {
             _page.ContentExtentChanged -= OnContentExtentChanged;
+            _page.CheckUpdatesRequested = null;
+            _page.ExitApplicationRequested = null;
         }
         if (_hotkeyService is not null)
         {
@@ -614,6 +692,7 @@ public sealed partial class MainWindow : Window
             _trayIconService.CaptureRequested -= OnTrayCaptureRequested;
             _trayIconService.ExitRequested -= OnTrayExitRequested;
             _trayIconService.Minimized -= OnTrayMinimized;
+            _trayIconService.UserCloseRequested -= OnUserCloseRequested;
             _trayIconService.Dispose();
         }
 

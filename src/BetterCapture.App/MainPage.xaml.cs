@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Automation;
 using BetterCapture.App.Services;
 using BetterCapture.Core.Video;
+using BetterCapture.Core.Updates;
 
 namespace BetterCapture.App;
 
@@ -44,6 +45,10 @@ public sealed partial class MainPage : Page
 
     internal Func<Task>? ChangeHotkeyRequested { get; set; }
 
+    internal Func<Task>? CheckUpdatesRequested { get; set; }
+
+    internal Action? ExitApplicationRequested { get; set; }
+
     internal event EventHandler? ContentExtentChanged;
 
     internal bool IncludeCursor => CursorToggle.IsOn;
@@ -74,6 +79,8 @@ public sealed partial class MainPage : Page
         StorageLocationLabelText.Text = Localizer.Get("StorageLocationLabel");
         StartupMenuItem.Text = Localizer.Get("StartupMenuItem");
         MinimizeToTrayMenuItem.Text = Localizer.Get("MinimizeToTrayMenuItem");
+        ExitApplicationMenuItem.Text = Localizer.Get("ExitApplicationMenuItem");
+        CheckUpdatesMenuItem.Text = Localizer.Get("CheckUpdatesMenuItem");
     }
 
     internal void SetStartupEnabled(bool enabled)
@@ -123,7 +130,20 @@ public sealed partial class MainPage : Page
 
     internal void ShowCapture(CaptureSaveResult result)
     {
-        CaptureInfo.Severity = InfoBarSeverity.Success;
+        CaptureInfo.Severity = result.UsedRecoveryLocation
+            ? InfoBarSeverity.Warning
+            : InfoBarSeverity.Success;
+        if (result.UsedRecoveryLocation)
+        {
+            CaptureInfo.Title = Localizer.Get("CaptureRecovered");
+            CaptureInfo.Message = Localizer.Format(
+                "CaptureRecoveryMessage",
+                result.PngPath,
+                result.OriginalSaveError ?? Localizer.Get("UnknownError"));
+            CaptureInfo.IsOpen = true;
+            return;
+        }
+
         CaptureInfo.Title = result.Source.Kind == BetterCapture.Core.Capture.CaptureSelectionKind.Scrolling
             ? Localizer.Get("ScrollingCaptureSaved")
             : result.Analysis.HasExtendedRange
@@ -230,6 +250,54 @@ public sealed partial class MainPage : Page
         }
     }
 
+    private async void CheckUpdatesMenuItem_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        if (CheckUpdatesRequested is null)
+        {
+            return;
+        }
+
+        CheckUpdatesMenuItem.IsEnabled = false;
+        try
+        {
+            await CheckUpdatesRequested();
+        }
+        finally
+        {
+            CheckUpdatesMenuItem.IsEnabled = true;
+        }
+    }
+
+    internal async Task<bool> PromptUpdateAsync(ReleaseUpdate update)
+    {
+        var sizeMiB = update.Size / (1024d * 1024d);
+        var notes = update.Notes.Length <= 1200
+            ? update.Notes
+            : update.Notes[..1200] + "…";
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = Localizer.Format("UpdateAvailableTitle", update.Version.ToString(3)),
+            Content = Localizer.Format("UpdateAvailableMessage", update.Version.ToString(3), sizeMiB, notes),
+            PrimaryButtonText = Localizer.Get("DownloadAndInstallUpdate"),
+            CloseButtonText = Localizer.Get("Later"),
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    internal async Task ShowUpdateMessageAsync(string title, string message)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = title,
+            Content = message,
+            CloseButtonText = Localizer.Get("Close"),
+        };
+        await dialog.ShowAsync();
+    }
+
     private async void MinimizeToTrayMenuItem_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         if (_settingTrayToggle || MinimizeToTraySettingChanged is null)
@@ -248,6 +316,9 @@ public sealed partial class MainPage : Page
             MinimizeToTrayMenuItem.IsEnabled = true;
         }
     }
+
+    private void ExitApplicationMenuItem_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e) =>
+        ExitApplicationRequested?.Invoke();
 
     private void InitializeLanguageMenu()
     {
