@@ -69,3 +69,7 @@ dotnet run --project .\tools\BetterCapture.CaptureProbe\BetterCapture.CapturePro
 The app is packaged and self-contained. The Windows setting **Use the Print
 Screen key to open screen capture** may need to be turned off if Windows has
 already reserved that key.
+
+## License
+
+This software is under the Nax Source-Available License 1.0. You may install and use the official release builds, privately and at work, and you may read the source code. Modifying the software, redistributing it and selling it need the written permission of the owner. See [LICENSE](LICENSE).
